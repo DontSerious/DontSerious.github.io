@@ -1,0 +1,13 @@
+public
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+node_modules
+
+db.json
+.vscode/time.code-snippets
+.vscode/
+.vscode/settings.json

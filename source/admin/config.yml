@@ -1,0 +1,87 @@
+# https://decapcms.org/docs/configuration-options/
+backend:
+  name: bitbucket
+  repo: tomatobucket/source
+  branch: master
+  auth_type: implicit
+  app_id: 5njGrkMr9rNKU95b2V
+media_folder: "static/2023"
+public_folder: "/static/2023"
+site_url: "https://tomatoblog.netlify.app/"
+logo_url: "https://tomatoblog.netlify.app/static/avatar.jpg"
+locale: "zh_Hans"
+common_col_conf: &common_col_conf
+  create: true
+  slug: "{{fields.filename}}"
+  sortable_fields:
+    - "commit_date"
+    - "title"
+    - "date"
+    - "updated"
+  # https://decapcms.org/docs/widgets/
+  fields:
+    - label: "文件名"
+      name: "filename"
+      widget: "string"
+    - label: "标题"
+      name: "title"
+      widget: "string"
+    - label: "发表日期"
+      name: "date"
+      widget: "datetime"
+      format: "YYYY-MM-DD HH:mm:ss"
+      date_format: "YYYY-MM-DD"
+      time_format: "HH:mm:ss"
+    - label: "更新日期"
+      name: "updated"
+      widget: "datetime"
+      format: "YYYY-MM-DD HH:mm:ss"
+      date_format: "YYYY-MM-DD"
+      time_format: "HH:mm:ss"
+      required: false
+    - label: "封面"
+      name: "cover"
+      widget: "image"
+      required: false
+    - label: "分类"
+      name: "categories"
+      widget: "select"
+      multiple: true
+      required: false
+      options:
+        - "BackEnd"
+        - "Book"
+        - "FrontEnd"
+        - "Memo"
+        - "Tutorial"
+    - label: "标签"
+      name: "tags"
+      widget: "select"
+      multiple: true
+      required: false
+      options:
+        - "cpp"
+        - "cs"
+        - "csapp"
+        - "hexo"
+        - "linux"
+        - "log"
+        - "psychology"
+        - "tools"
+    - label: "正文"
+      name: "body"
+      widget: "markdown"
+    - label: "目录"
+      name: "toc"
+      widget: "boolean"
+      default: true
+    # - label: "评论"
+    #   name: "comments"
+    #   widget: "boolean"
+    #   default: false
+collections:
+  - name: "2023"
+    label: "2023"
+    folder: "_posts/2023"
+    preview_path: "2023/{{filename}}/"
+    <<: *common_col_conf

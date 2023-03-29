@@ -1,0 +1,4 @@
+[submodule "themes/icarus"]
+	path = themes/icarus
+	url = https://github.com/DontSerious/hexo-theme-icarus.git
+	branch = imaegoo4
