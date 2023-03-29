@@ -20,3 +20,11 @@ updated: 2023-03-28 13:46:42
         type: archives
         format: YYYY年MM月DD日
 ```
+
+# 修改头像下的关注按钮文字
+
+修改`themes/icarus/languages/zh-CN.yml`
+```yml
+widget:
+    follow: 'Github'
+```
