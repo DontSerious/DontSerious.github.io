@@ -3,7 +3,7 @@ title: Hello World
 date: 2023-03-10 12:00:00
 updated: 2023-03-10 12:00:00
 categories:
-- Blog
+- Tutorial
 tags:
 - tools
 - hexo
