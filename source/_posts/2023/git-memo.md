@@ -1,7 +1,7 @@
 ---
 title: git
 date: 2023-03-18 15:41:53
-updated: 2023-03-18 15:41:53
+updated: 2023-03-29 17:31:51
 categories:
 - Memo
 tags:
@@ -9,6 +9,19 @@ tags:
 ---
 
 # 配置
+
+## linux生成ssh key
+
+```
+ssh-keygen -t ed25519 -C "1090087271@qq.com"
+```
+
+默认情况下，GitHub 支持的公钥的文件名是以下之一：
+
+- id_rsa.pub
+- id_ecdsa.pub
+- id_ed25519.pub
+
 ## github用户名邮箱设置
 ```bash
 # --global 全局
@@ -47,6 +60,10 @@ git submodule update [submodule 名称]
 # 添加 submodule，例子中后跟 名称 为该 module 名称与目录名
 git submodule add [submodule 地址]
 git submodule add [submodule 地址] [目录]
+
+# 如果 status 已存在子项目且最前面带个负号
+git submodule update --init
+git submodule update --init [submodule 名称]
 
 # 强制添加 submodule（仅用于 git submodule 没有正确的显示某个 module）
 git submodule add --force --name [submodule 名称] [submodule 地址]
