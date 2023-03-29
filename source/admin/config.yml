@@ -1,11 +1,11 @@
 # https://decapcms.org/docs/configuration-options/
 backend:
   name: bitbucket
-  repo: tomatobucket/source
+  repo: tomatobucket/blog
   branch: master
   auth_type: implicit
   app_id: 5njGrkMr9rNKU95b2V
-media_folder: "static/2023"
+media_folder: "source/static/2023"
 public_folder: "/static/2023"
 site_url: "https://tomatoblog.netlify.app/"
 logo_url: "https://tomatoblog.netlify.app/static/avatar.jpg"
@@ -82,6 +82,6 @@ common_col_conf: &common_col_conf
 collections:
   - name: "2023"
     label: "2023"
-    folder: "_posts/2023"
+    folder: "source/_posts/2023"
     preview_path: "2023/{{filename}}/"
     <<: *common_col_conf
