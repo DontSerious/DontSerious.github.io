@@ -4,7 +4,7 @@ description: ''
 keywords: null
 author: TOMATO
 language: zh-CN
-timezone: ''
+timezone: 'Asia/Shanghai'
 url: https://tomatoblog.netlify.app/
 permalink: ':title/'
 permalink_defaults: null
