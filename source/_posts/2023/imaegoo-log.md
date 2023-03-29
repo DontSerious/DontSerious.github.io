@@ -5,7 +5,7 @@ categories:
 tags:
   - log
 date: 2023-03-28 13:46:42
-updated: 2023-03-28 13:46:42
+updated: 2023-03-29 17:43:59
 ---
 # 去除评论
 
@@ -14,11 +14,10 @@ updated: 2023-03-28 13:46:42
 # 设置归档格式
 修改`_config.icarus.yml`
 ```yml
--
-        # Where should the widget be placed, left sidebar or right sidebar
-        position: left
-        type: archives
-        format: YYYY年MM月DD日
+# Where should the widget be placed, left sidebar or right sidebar
+position: left
+type: archives
+format: YYYY年MM月DD日
 ```
 
 # 修改头像下的关注按钮文字
