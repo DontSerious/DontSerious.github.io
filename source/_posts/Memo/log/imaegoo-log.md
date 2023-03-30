@@ -6,6 +6,7 @@ tags:
   - log
 date: 2023-03-28 13:46:42
 updated: 2023-03-29 17:43:59
+toc: true
 ---
 # 去除评论
 
@@ -27,3 +28,7 @@ format: YYYY年MM月DD日
 widget:
     follow: 'Github'
 ```
+
+# 删除访客数量
+
+`themes/icarus/layout/common/article.jsx`注释81-83行
