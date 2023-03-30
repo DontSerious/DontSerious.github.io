@@ -1,7 +1,7 @@
 ---
 title: 40 search
 categories:
-  - Book
+  - Study
 tags:
   - psychology
 date: 2023-03-22 08:39:38

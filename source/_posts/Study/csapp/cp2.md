@@ -1,7 +1,7 @@
 ---
 title: cp2：信息的表示和处理
 categories:
-  - Book
+  - Study
 tags:
   - csapp
 date: 2023-03-22 11:25:43

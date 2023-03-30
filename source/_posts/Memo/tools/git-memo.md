@@ -1,7 +1,7 @@
 ---
 title: git
 date: 2023-03-18 15:41:53
-updated: 2023-03-29 17:31:51
+updated: 2023-03-30 15:42:59
 categories:
 - Memo
 tags:
@@ -42,31 +42,21 @@ git config --replace-all user.email "email"
 ## 常用命令
 
 ```shell
-# 查看 submodules
-# 结果的 hash 前不带符号说明该 module 正常且提交版本同步（提交版本同步指主项目记录提交版本与子模块当前提交版本一致）
 # 结果的 hash 前带 - 号说明该 module 未初始化
 # 结果的 hash 前带 + 号说明该 module 版本未同步
-git submodule
 git submodule status
 
 # 初始化 modules，重复初始化无影响，例子中后跟 名称 为指定初始化某个 module 的名称（下同）
-git submodule init
 git submodule init [submodule 名称]
 
-# 版本未同步时，检出 modules，保证检出的版本与主项目匹配，但子 module 会创建临时分支
-git submodule update
-git submodule update [submodule 名称]
-
-# 添加 submodule，例子中后跟 名称 为该 module 名称与目录名
-git submodule add [submodule 地址]
+# 添加 submodule，例子中后跟 目录 为该 module 名称与目录名
 git submodule add [submodule 地址] [目录]
 
-# 如果 status 已存在子项目且最前面带个负号
-git submodule update --init
-git submodule update --init [submodule 名称]
+# 版本未同步时，检出 modules，保证检出的版本与主项目匹配，但子 module 会创建临时分支
+git submodule update [submodule 名称]
 
-# 强制添加 submodule（仅用于 git submodule 没有正确的显示某个 module）
-git submodule add --force --name [submodule 名称] [submodule 地址]
+# 如果 status 已存在子项目且最前面带个负号
+git submodule update --init [submodule 名称]
 
 # 遍历所有 submodule 执行指定命令
 # git submodule foreach 其他命令，如：
@@ -74,33 +64,13 @@ git submodule foreach git pull
 git submodule foreach ls -l
 ```
 
-## 复合命令
-
 ```shell
-# 重新 clone 项目（含 clone 所有子项目）方式一
-git clone --recursive [submodule 地址]
-
-# 重新 clone 项目（含 clone 所有子项目）方式二，依次执行以下命令
-git clone [submodule 地址]
-git submodule init
-git submodule update
-
-# pull 项目，并检出新增 submodule
-git pull
-git submodule init
-git submodule update [submodule 名称]
-
 # pull 项目，并移除废弃 submodule
 # 建议重新 clone 项目
 
 # pull 项目，并重命名 submodule
 # 建议重新 clone 项目
 ```
-
-## 说明：
-
-- 子项目更新，直接使用 git pull 即可。如果想让提交版本同步，主项目使用 git submodule update [submodule 名称]
-- 新增 submodule 部分 IDE 工具需要新打开主项目才行，包括 IDEA
 
 ## 删除子项目
 
@@ -127,9 +97,3 @@ git submodule update [submodule 名称]
  4. 非必须，修改【.git/config】文件内容：去除被删除的 submodule 内容
  5. 非必须，删除【.git/modules】目录下对应 submodule 目录
 ```
-
-#### 其他合作伙伴更新
-
-- 建议重新 clone 项目
-- 如果不想废弃本地仓库的话，和上述做法一致，就是没有修改【.gitmodules】这一步了
-
