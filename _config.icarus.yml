@@ -385,3 +385,10 @@ providers:
     fontcdn: host
     # Name or URL of the fontawesome icon font CDN provider
     iconcdn: host
+
+# Excerpt 
+## Auto creat excerpt with not <!--more-->
+## Enable will truncate auto_excerpt.lines rows in post head to replace excerpt.
+auto_excerpt:
+    enable: true
+    lines: 4
