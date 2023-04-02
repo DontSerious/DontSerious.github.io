@@ -1,20 +1,56 @@
 ---
 title: git
 date: 2023-03-18 15:41:53
-updated: 2023-03-30 15:42:59
+updated: 2023-04-02 15:26:45
 categories:
 - Memo
 tags:
 - tools
+toc: true
 ---
-
 # 配置
 
-## linux生成ssh key
+## 将 SSH 密钥添加到 ssh-agent
+
+### 启动 SSH 代理
+
+要允许 `git` 使用您的 `SSH` 密钥，需要在您的设备上运行 SSH 代理。
+
+要检查它是否已运行，请运行 `ps` 命令。如果 `ssh` 代理已在运行，它应该出现在输出中，例如：
+
+```bash
+$ ps -auxc | grep ssh-agent
+tomato      1317  0.0  0.0   7972  3316 ?        Ss   15:03   0:00 ssh-agent
+```
+
+要启动代理，请运行：
+
+```bash
+eval $(ssh-agent)
+```
+
+最后需要将此命令添加到 `~/.bashrc`、`~/.zshrc`、`~/.profile` 或等效的 `shell` 配置文件中。将此命令添加到 `shell` 配置文件将确保打开终端时代理正在运行。
+
+### 创建 SSH 密钥对
+
+使用 `ssh-keygen` 生成 SSH 密钥对，例如：
 
 ```
-ssh-keygen -t ed25519 -C "1090087271@qq.com"
+cd ~/.ssh
+ssh-keygen -t ed25519 -b 4096 -C "{username@emaildomain.com}" -f {ssh-key-name}
 ```
+
+完成后，`ssh-keygen` 将输出两个文件：
+
+- {ssh-key-name} — 私钥。
+- {ssh-key-name}.pub — 公钥。
+
+#### bitbucket
+
+- {username@emaildomain.com} 是与 Bitbucket Cloud 帐户关联的电子邮件地址，例如您的工作电子邮件帐户。
+- {ssh-key-name} 是键的输出文件名。我们建议使用可识别的名称，例如bitbucket_work。
+
+#### github
 
 默认情况下，GitHub 支持的公钥的文件名是以下之一：
 
