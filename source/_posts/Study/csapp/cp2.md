@@ -5,7 +5,7 @@ categories:
 tags:
   - csapp
 date: 2023-03-22 11:25:43
-updated: 2023-04-02 14:47:13
+updated: 2023-04-03 23:27:15
 
 toc: true
 ---
@@ -110,6 +110,33 @@ printf("x= %d,y= %lu\n"，x，y);
 </table>
 
 # 整数表示
+
+## show_bytes()
+
+```c
+#include <stdio.h>
+
+typedef unsigned char *byte_pointer;
+
+void show_bytes(byte_pointer start, size_t len) {
+    size_t i;
+    for (i = 0; i < len; i++) 
+        printf(" %.2x", start[i]);
+    printf("\n");
+}
+
+void show_int(int x) {
+    show_bytes((byte_pointer) &x, sizeof(int));
+}
+
+void show_float(float x) {
+    show_bytes((byte_pointer) &x, sizeof(float));
+}
+
+void show_pointer(void *x) {
+    show_bytes((byte_pointer) &x, sizeof(void *));
+}
+```
 
 ## C语言中的有符号数和无符号数
 
@@ -482,7 +509,7 @@ IEEE浮点标准用`V=(-1)^s^ * M * 2^E^`的形式来表示一个数
 | 0 10 01 |   2   |   1   |   2   |  1/4  |  5/4  |   10/4   |  5/2   |  2.5   |
 | 0 10 10 |   2   |   1   |   2   |  1/2  |  3/2  |   6/2    |   3    |   3    |
 | 0 10 11 |   2   |   1   |   2   |  3/4  |  7/4  |   14/4   |  7/2   |  3.5   |
-| 0 11 00 |   -   |   -   |   -   |   -   |   -   |    -     | 无穷大  |   -    |
+| 0 11 00 |   -   |   -   |   -   |   -   |   -   |    -     | 无穷大 |   -    |
 | 0 11 01 |   -   |   -   |   -   |   -   |   -   |    -     |  NaN   |   -    |
 | 0 11 10 |   -   |   -   |   -   |   -   |   -   |    -     |  NaN   |   -    |
 | 0 11 11 |   -   |   -   |   -   |   -   |   -   |    -     |  NaN   |   -    |
