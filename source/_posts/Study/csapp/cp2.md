@@ -55,7 +55,7 @@ printf("x= %d,y= %lu\n"，x，y);
 算术右移需要考虑符号位，右移一位，若符号位为1，就在左边补1,；否则，就补0。  
 
 ## 移位
-<table style="text-align:center!important">
+<table id="align_table">
     <tr>
         <td colspan="2">x</td>
         <td colspan="2">x << 3</td>
@@ -226,7 +226,7 @@ int fun2(unsigned word) {
 
 ### 无符号加法
 
-<table style="text-align:center">
+<table id="align_table">
     <tr>
         <td colspan="2">x</td>
         <td colspan="2">-x(u 4)</td>
@@ -307,7 +307,7 @@ int tAdd_ok(int x, int y) {
 
 ## 补码的非
 
-<table style="text-align:center">
+<table id="align_table"">
     <tr>
         <td colspan="2">x</td>
         <td colspan="2">-x(t 4)</td>

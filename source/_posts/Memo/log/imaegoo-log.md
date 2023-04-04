@@ -53,3 +53,15 @@ auto_excerpt:
     enable: true
     lines: 5
 ```
+
+# 自定义表格居中
+
+在 `themes/icarus/include/style/article.styl` 中增加以下样式
+
+```styl
+#align_table
+    td
+        text-align:center
+```
+
+自定义表格只需要 `<table id="align_table">` 就可以实现居中
