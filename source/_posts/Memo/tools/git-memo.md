@@ -1,7 +1,7 @@
 ---
 title: git
 date: 2023-03-18 15:41:53
-updated: 2023-04-02 15:26:45
+updated: 2023-04-04 11:43:21
 categories:
 - Memo
 tags:
@@ -57,6 +57,15 @@ ssh-keygen -t ed25519 -b 4096 -C "{username@emaildomain.com}" -f {ssh-key-name}
 - id_rsa.pub
 - id_ecdsa.pub
 - id_ed25519.pub
+
+### 添加ssh密钥对给ssh-agent代理
+
+```bash
+ssh-add /path/to/your/ssh-key1
+ssh-add /path/to/your/ssh-key2
+```
+
+每次重启都会导致ssh-agent的配置消失，所以需要将ssh-add命令添加到 `~/.bashrc`、`~/.zshrc`、`~/.profile` 或等效的 `shell` 配置文件中，保证每次启动都自动代理ssh密钥对。
 
 ## github用户名邮箱设置
 ```bash
