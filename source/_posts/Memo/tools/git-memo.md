@@ -1,7 +1,7 @@
 ---
 title: git
 date: 2023-03-18 15:41:53
-updated: 2023-04-04 11:43:21
+updated: 2023-04-04 20:36:05
 categories:
 - Memo
 tags:
@@ -66,6 +66,8 @@ ssh-add /path/to/your/ssh-key2
 ```
 
 每次重启都会导致ssh-agent的配置消失，所以需要将ssh-add命令添加到 `~/.bashrc`、`~/.zshrc`、`~/.profile` 或等效的 `shell` 配置文件中，保证每次启动都自动代理ssh密钥对。
+
+同时也建议配置 `ssh-agent -k` 到 `~/.bash_logout` 文件中，用于离开时关闭代理。
 
 ## github用户名邮箱设置
 ```bash

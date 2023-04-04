@@ -5,7 +5,7 @@ categories:
 tags:
   - csapp
 date: 2023-03-22 11:25:43
-updated: 2023-04-03 23:27:15
+updated: 2023-04-04 20:40:16
 
 toc: true
 ---
@@ -49,8 +49,13 @@ printf("x= %d,y= %lu\n"，x，y);
 相同的数字，用整数存储的和用浮点数存储的十六进制数不一样  
 **整数中除了最高有效位1，其他都存在与浮点数中**  
 
+## 算术右移（>>）与逻辑右移（>>>）
+
+逻辑右移就是不考虑符号位，右移一位，左边补零即可。  
+算术右移需要考虑符号位，右移一位，若符号位为1，就在左边补1,；否则，就补0。  
+
 ## 移位
-<table style="text-align:center">
+<table style="text-align:center!important">
     <tr>
         <td colspan="2">x</td>
         <td colspan="2">x << 3</td>
