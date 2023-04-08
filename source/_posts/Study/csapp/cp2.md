@@ -6,7 +6,7 @@ tags:
   - csapp
 date: 2023-03-22 11:25:43
 updated: 2023-04-04 20:40:16
-
+mathjax: true
 toc: true
 ---
 # 信息存储
@@ -442,7 +442,7 @@ int tMul_ok2(int32_t x, int32_t y)
 int book_div16(int x)
 {
         /* Compute bias to be either 0 (x >= 0) or 15 (x < 0) */
-        int bias = (x >> 31) & 0xF;//右移31位后，32位上面都是符号位的值
+        int bias = (x >> 31) & 0xF;//右移31位后，32位上面的是符号位的值
         //如果为非负数，符号位为0，bias变量为0
         //如果为负数，符号位为1，bias变量为0xF，即15
         return (x + bias) >> 4;
@@ -452,8 +452,8 @@ int book_div16(int x)
 # 偏置技术(bias)
 
 用偏置技术解决修正不合适的舍入：
- - 对于整数 x 和 y (y > 0) 有 `x / y (向上取整) == (x + y - 1) / y (向下取整)`
- - 于是有算术右移的补码机器表达式 `( x < 0 ? (x + y - 1) / y : x) >> k`
+ - 对于整数 x 和 y (y > 0) 有 `⌈x / y⌉ = ⌊(x + y – 1) / y⌋`
+ - 于是计算⌈x/2^k^⌉有算术右移的补码机器表达式 `( x < 0 ? (x + (1 << k) - 1) : x) >> k`
 
 # 浮点数
 

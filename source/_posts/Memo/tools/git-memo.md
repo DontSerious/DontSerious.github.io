@@ -1,7 +1,7 @@
 ---
 title: git
 date: 2023-03-18 15:41:53
-updated: 2023-04-04 20:36:05
+updated: 2023-04-08 13:39:45
 categories:
 - Memo
 tags:
@@ -78,7 +78,22 @@ git config --replace-all user.name "name"
 git config --replace-all user.email "email"
 ```
 
-# clone 下来的项目脱离git管理
+# 常用指令
+
+## 切换远程仓库
+
+`git remote -v` 查看远程仓库的地址
+
+### 修改远程仓库地址
+
+`git remote set-url origin URL` 更换远程仓库地址，URL为新地址。
+
+### 先删除远程仓库地址，然后再添加
+
+`git remote rm origin` 删除现有远程仓库
+`git remote add origin url` 添加新远程仓库
+
+## clone 下来的项目脱离git管理
 删除.git文件夹`git rm --cached`  
 解决“子项目错误”问题，会导致外层git也脱离  
 
