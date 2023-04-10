@@ -31,7 +31,7 @@ toc: true
 ## 字数据大小
 ### unsigned 和 signed 之间的相互转换
 
-![Alt text](../../../static/2023/CSAPP/C2UorU2C.png)
+![Alt text](../../../static/CSAPP/C2UorU2C.png)
 
 **unsigned 和 signed 建议不要混用**
 
