@@ -62,3 +62,94 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 |     float     | Single precision |       s       |          4          |
 |    double     | Double precision |       l       |          8          |
 
+## 访问信息
+
+1. 最初的8086中有 8 个 16 位的寄存器，即下表中 %ax ~ %sp
+2. IA32中寄存器扩展为32位，标号有 %eax ~ %esp
+3. X86-64中寄存器扩展成64位，编号有 %rax ~ %rsp，还增加了 8 个寄存器
+
+
+| 63 ~ 31 | 31 ~ 15 | 15 ~ 7 | 7 ~ 0 |     usage     |
+| :-----: | :-----: | :----: | :---: | :-----------: |
+|  %rax   |  %eax   |  %ax   |  %al  | return value  |
+|  %rbx   |  %ebx   |  %bx   |  %bl  | Callee saved  |
+|  %rcx   |  %ecx   |  %cx   |  %cl  | 4th argument  |
+|  %rdx   |  %edx   |  %dx   |  %dl  | 3rd argument  |
+|  %rsi   |  %esi   |  %si   | %sil  | 2nd argument  |
+|  %rdi   |  %edi   |  %di   | %dil  | 1st argument  |
+|  %rbp   |  %ebp   |  %bp   | %bpl  | Callee saved  |
+|  %rsp   |  %esp   |  %sp   | %spl  | Stack pointer |
+|   %r8   |  %r8d   |  %r8w  | %r8b  | 5th argument  |
+|   %r9   |  %r9d   |  %r9w  | %r9b  | 6th argument  |
+|  %r10   |  %r10d  | %r10w  | %r10b | Callee saved  |
+|  %r11   |  %r11d  | %r11w  | %r11b | Callee saved  |
+|  %r12   |  %r12d  | %r12w  | %r12b | Callee saved  |
+|  %r13   |  %r13d  | %r13w  | %r13b | Callee saved  |
+|  %r14   |  %r14d  | %r14w  | %r14b | Callee saved  |
+|  %r15   |  %r15d  | %r15w  | %r15b | Callee saved  |
+
+- 字节级操作可以访问最低的字节
+- 16位操作可以访问最低的两个字节
+- 32位操作可以访问最低的四个字节
+- 64位操作可以访问整个寄存器
+
+### 操作数指示符
+
+![Alt text](../../../static/CSAPP/f3.3.png)
+
+- 立即数(immediate): 在ATT格式的汇编代码中，立即数的书写方式是 `$` 后面跟一个用标准 C 表示法表示的整数，例如`$-577`、`$0x1F`。
+- 寄存器(register): ra 表示任意寄存器a，用引用 R[ra] 来代表它的值
+- 内存引用：根据地址访问内存位置。用符号 Mb[Addr] 表示对存储在内存中从地址 Addr 开始的 b 个字节值的引用。通常省略 b
+- 最下面的表示是最常用的形式
+
+### 数据传送指令
+
+- S：源操作数（source operand）
+- D：目标操作数（destination operand）
+- I：立即数操作数（immediate operand）
+- R：寄存器操作数（register operand）
+
+#### 简单的数据传送指令
+
+- 根据源操作数选择指令
+- 使用到操作数格式寻址时，必须为64位寄存器
+- 两个操作数不能都为内存地址，进行mov其中一个必须为寄存器
+- 不能以立即数作为目标操作数
+
+|    Instruction    | Effect |       Description       |
+| :---------------: | :----: | :---------------------: |
+| mov	       S, D | D ← S  |          Move           |
+|       movb        |        |        Move byte        |
+|       movw        |        |        Move word        |
+|       movl        |        |    Move double word     |
+|       movq        |        |     Move quad word      |
+| movabsq	   I, R | R ← I  | Move absolute quad word |
+
+#### 零扩展数据传送指令
+
+| Instruction |      Effect       |              Description               |
+| :---------: | :---------------: | :------------------------------------: |
+|  movz S,R   | R ← ZeroExtend(S) |        Move with zero extension        |
+|   movzbw    |                   |    Move zero-extended byte to word     |
+|   movzbl    |                   | Move zero-extended byte to double word |
+|   movzwl    |                   | Move zero-extended word to double word |
+|   movzbq    |                   |  Move zero-extended byte to quad word  |
+|   movzwq    |                   |  Move zero-extended word to quad word  |
+
+- 以寄存器或内存为源，以寄存器作为目的
+
+#### 符号扩展数据传送指令
+
+| Instruction |         Effect          |                 Description                 |
+| :---------: | :---------------------: | :-----------------------------------------: |
+|  movs S,R   |    R ← SignExtend(S)    |          Move with sign extension           |
+|   movsbw    |                         |       Move sign-extended byte to word       |
+|   movsbl    |                         |   Move sign-extended byte to double word    |
+|   movswl    |                         |   Move sign-extended word to double word    |
+|   movsbq    |                         |    Move sign-extended byte to quad word     |
+|   movswq    |                         |    Move sign-extended word to quad word     |
+|   movslq    |                         | Move sign-extended double word to quad word |
+|    cltq     | %rax ← SignExtend(%eax) |          Sign-extend %eax to %rax           |
+
+- 以寄存器或内存为源，以寄存器作为目的
+- cltq 指令它没有操作数，总是以 %eax 为源，以 %rax 为符号扩展结果的目的。它的效果和 `movslq %eax, %rax` 完全一致
