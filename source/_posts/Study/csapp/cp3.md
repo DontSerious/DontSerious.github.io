@@ -1,5 +1,5 @@
 ---
-title: cp3
+title: cp3 程序的机器级表示
 categories:
   - Study
 tags:
@@ -48,4 +48,17 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 
 ### 反汇编器
 
-`-d`：根据机器代码产生一种类似于汇编代码的格式。针对`*.o`文件。
+`objdump -d 文件名`：根据机器代码产生一种类似于汇编代码的格式。针对`*.o`文件。
+
+## 数据格式
+
+| C declaration | Intel data type  | Assembly-code | suffix	Size (bytes) |
+| :-----------: | :--------------: | :-----------: | :-----------------: |
+|     char      |       Byte       |       b       |          1          |
+|     short     |       Word       |       w       |          2          |
+|      int      |   Double word    |       l       |          4          |
+|     long      |    Quad word     |       q       |          8          |
+|    char *     |    Quad word     |       q       |          8          |
+|     float     | Single precision |       s       |          4          |
+|    double     | Double precision |       l       |          8          |
+
