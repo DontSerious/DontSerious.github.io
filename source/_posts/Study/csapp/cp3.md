@@ -6,7 +6,7 @@ tags:
   - csapp
 toc: true
 date: 2023-04-09 14:54:13
-updated: 2023-04-16 12:58:07
+updated: 2023-04-16 17:01:43
 ---
 # 名词
 
@@ -50,7 +50,7 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 
 `objdump -d 文件名`：根据机器代码产生一种类似于汇编代码的格式。针对`*.o`文件。
 
-## 数据格式
+# 数据格式
 
 | C declaration | Intel data type  | Assembly-code | suffix	Size (bytes) |
 | :-----------: | :--------------: | :-----------: | :-----------------: |
@@ -62,7 +62,7 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 |     float     | Single precision |       s       |          4          |
 |    double     | Double precision |       l       |          8          |
 
-## 访问信息
+# 访问信息
 
 1. 最初的8086中有 8 个 16 位的寄存器，即下表中 %ax ~ %sp
 2. IA32中寄存器扩展为32位，标号有 %eax ~ %esp
@@ -93,7 +93,7 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 - 32位操作可以访问最低的四个字节
 - 64位操作可以访问整个寄存器
 
-### 操作数指示符
+## 操作数指示符
 
 ![Alt text](../../../static/CSAPP/f3.3.png)
 
@@ -102,33 +102,33 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 - 内存引用：根据地址访问内存位置。用符号 Mb[Addr] 表示对存储在内存中从地址 Addr 开始的 b 个字节值的引用。通常省略 b
 - 最下面的表示是最常用的形式
 
-### 数据传送指令
+## 数据传送指令
 
 - S：源操作数（source operand）
 - D：目标操作数（destination operand）
 - I：立即数操作数（immediate operand）
 - R：寄存器操作数（register operand）
 
-#### 简单的数据传送指令
+### 简单的数据传送指令
 
 - 根据源操作数选择指令
 - 使用到操作数格式寻址时，必须为64位寄存器
 - 两个操作数不能都为内存地址，进行mov其中一个必须为寄存器
 - 不能以立即数作为目标操作数
 
-|    Instruction    | Effect |       Description       |
-| :---------------: | :----: | :---------------------: |
+|   Instruction   | Effect |       Description       |
+| :-------------: | :----: | :---------------------: |
 | mov	       S, D | D ← S  |          Move           |
-|       movb        |        |        Move byte        |
-|       movw        |        |        Move word        |
-|       movl        |        |    Move double word     |
-|       movq        |        |     Move quad word      |
+|      movb       |        |        Move byte        |
+|      movw       |        |        Move word        |
+|      movl       |        |    Move double word     |
+|      movq       |        |     Move quad word      |
 | movabsq	   I, R | R ← I  | Move absolute quad word |
 
 - movl 指令以寄存器作为目标时，会把该寄存器的高位4字节设置为0
   - x86-64采用的惯例，即任何为寄存器生成32位值的指令都会将该寄存器的高位部分设置为0
 
-#### 零扩展数据传送指令
+### 零扩展数据传送指令
 
 | Instruction |      Effect       |              Description               |
 | :---------: | :---------------: | :------------------------------------: |
@@ -142,7 +142,7 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 - 以寄存器或内存为源，以寄存器作为目的
 - MOVZ 类指令把目的中的剩余的字节填充为0
 
-#### 符号扩展数据传送指令
+### 符号扩展数据传送指令
 
 | Instruction |         Effect          |                 Description                 |
 | :---------: | :---------------------: | :-----------------------------------------: |
@@ -158,3 +158,86 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 - 以寄存器或内存为源，以寄存器作为目的
 - cltq 指令它没有操作数，总是以 %eax 为源，以 %rax 为符号扩展结果的目的。它的效果和 `movslq %eax, %rax` 完全一致
 - MOVZ 类指令通过符号扩展来填充，把源操作的最高位进行复制
+
+## 压入和弹出栈数据
+
+| Instruction |                  Effect                  |  Description   |
+| :---------: | :--------------------------------------: | :------------: |
+|   pushq S   | R[%rsp] ← R[%rsp] –8;<br>M[R[%rsp]] ← S  | Push quad word |
+|   popq D    | D ← M[R[%rsp]];<br>R[%rsp] ← R[%rsp] + 8 | Pop quad word  |
+
+pushq 等价
+```
+subq $8,%rsp
+movq %rbp,(%rsp)
+```
+popq 等价
+```
+movq (%rsp),%rax
+addq $8,$rsp
+```
+
+- 虽然等价，但是 pushq 和 popq 的指令编码仅为一个字节，而上面两条指令一共需要八个字节
+- 栈和程序代码以及其它形式的程序数据都放在同一内存中，所以程序可以用标准的内存寻址方法访问栈内任何位置
+
+# 算数和逻辑操作
+
+| Instruction |     Effect     |       Description        |
+| :---------: | :------------: | :----------------------: |
+|  leaq S, D  |     D ← &S     |  Load effective address  |
+|    inc D    |   D ← D + 1    |        Increment         |
+|    dec D    |   D ← D - 1    |        Decrement         |
+|    neg D    |     D ← -D     |          Negate          |
+|    not D    |     D ← ~D     |        Complement        |
+|  add S, D   |   D ← D + S    |           Add            |
+|  sub S, D   |   D ← D - S    |         Subtract         |
+|  imul S, D  |   D ← D * S    |         Multiply         |
+|  xor S, D   |   D ← D ^ S    |       Exclusive-or       |
+|   or S, D   | D ← D &#124; S |            Or            |
+|  and S, D   |   D ← D & S    |           And            |
+|  sal k, D   |   D ← D << k   |        Left shift        |
+|  shl k, D   |   D ← D << k   | Left shift (same as sal) |
+|  sar k, D   |  D ← D >>A k   |  Arithmetic right shift  |
+|  shr k, D   |  D ← D >>L k   |   Logical right shift    |
+
+- 加载有效地址(leaq)指令通常用来执行简单的算术操作
+- ATT格式的汇编代码中操作数的顺序与一般的直觉相反
+
+## 加载有效地址(leaq)
+
+- 实际上是movq指令的变形，指令形式是从内存读数据到寄存器，但实际上根本没有引用内存
+- 该指令并不是从指定的位置读入数据，而是将有效地址写入到目的操作数
+- 它可以简洁的描述普通的算术操作
+  - 如果寄存器 %rdx 的值为 x，那么指令 `leaq 7(%rdx, %rdx, 4)`，%rax 将设置寄存器 %rax 的值为 `5x + 7`
+- 目的数必须为一个寄存器
+
+例如：  
+
+c程序
+```c
+long scale(long x, long y, long z) {
+    long t = x + 4 * y + 12 * z;
+    return t;
+}
+```
+编译时，算术运算将以三条 leaq 指令实现：
+```
+  // long scale(long x, long y, long z)
+  // x in %rdi, y in %rsi, z in %rdx
+scale:
+  leaq	(%rdi,%rsi,4), %rax		// x + 4*y
+  leaq	(%rdx,%rdx,2), %rdx		// z + 2*z = 3*z
+  leaq	(%rax,%rdx,4), %rax		// (x+4*y) + 4*(3*z) = x + 4*y + 12*z
+  ret
+```
+
+- 它能执行加法和有限形式的乘法
+
+## 二元操作
+
+- 源操作数是第一个，目的操作数是第二个
+  - `subq %rax,%rdx` 可以解读为：从%rdx中减去%rax
+- 第一个操作数可以是立即数、寄存器或是内存位置
+- 第二个操作数可以是寄存器或是内存地址。
+  - 当第二个数位内存地址时，处理器必须从内存读出值，执行操作，再把结果写回内存
+
