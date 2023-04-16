@@ -6,7 +6,7 @@ tags:
   - csapp
 toc: true
 date: 2023-04-09 14:54:13
-updated: 2023-04-09 14:54:13
+updated: 2023-04-16 12:58:07
 ---
 # 名词
 
@@ -125,6 +125,9 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 |       movq        |        |     Move quad word      |
 | movabsq	   I, R | R ← I  | Move absolute quad word |
 
+- movl 指令以寄存器作为目标时，会把该寄存器的高位4字节设置为0
+  - x86-64采用的惯例，即任何为寄存器生成32位值的指令都会将该寄存器的高位部分设置为0
+
 #### 零扩展数据传送指令
 
 | Instruction |      Effect       |              Description               |
@@ -137,6 +140,7 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 |   movzwq    |                   |  Move zero-extended word to quad word  |
 
 - 以寄存器或内存为源，以寄存器作为目的
+- MOVZ 类指令把目的中的剩余的字节填充为0
 
 #### 符号扩展数据传送指令
 
@@ -153,3 +157,4 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 
 - 以寄存器或内存为源，以寄存器作为目的
 - cltq 指令它没有操作数，总是以 %eax 为源，以 %rax 为符号扩展结果的目的。它的效果和 `movslq %eax, %rax` 完全一致
+- MOVZ 类指令通过符号扩展来填充，把源操作的最高位进行复制
