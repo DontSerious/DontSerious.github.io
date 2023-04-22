@@ -241,3 +241,33 @@ scale:
 - 第二个操作数可以是寄存器或是内存地址。
   - 当第二个数位内存地址时，处理器必须从内存读出值，执行操作，再把结果写回内存
 
+## 移位操作 SA
+
+`SAL 移位量, 移位的数`
+
+- 移位量可以是一个立即数，或者放在单字节寄存器 %cl 中(能且只能放在这个特定寄存器)
+- 当寄存器 %cl 的十六进制值为 0xFF 时，salb 会移 7 位，salw 会移 15 位，sall 会移 31 位，salq 会移 63 位
+- 左移指令有两个名字：SAL 和 SHL
+  - 两者效果一致，都是将右边填上0
+- 右移指令不同
+  - SAR执行算术移位(填上符号位)
+  - SHR执行逻辑以为(填上0)
+
+## xorq %rdx,%rdx
+
+- 这个指令用来将寄存器设置为0
+- 最直接的方法是 movq $0,%rdx
+- xorq版本只需要三个字节，movq版本则需要七个字节
+
+## 特殊的算术操作
+
+- x86-64 指令集对 128 位(16 字节)数的操作提供有限的支持。
+- 延续字(2字节)、双字(4字节)和四字(8字节)的命名惯例，Intel 把16字节的数称为八字(oct word)。
+
+| Instruction |                              Effect                               |      Description       |
+| :---------: | :---------------------------------------------------------------: | :--------------------: |
+|   imulq S   |                   R[%rdx]:R[%rax] ← S × R[%rax]                   |  Signed full multiply  |
+|   mulq S    |                   R[%rdx]:R[%rax] ← S × R[%rax]                   | Unsigned full multiply |
+|    cqto     |               R[%rdx]:R[%rax] ← SignExtend(R[%rax])               |  Convert to oct word   |
+|   idivq S   | R[%rdx] ← R[%rdx]:R[%rax] mod S;<br>R[%rax] ← R[%rdx]:R[%rax] ÷ S |     Signed divide      |
+|   divq S    | R[%rdx] ← R[%rdx]:R[%rax] mod S;<br>R[%rax] ← R[%rdx]:R[%rax] ÷ S |    Unsigned divide     |

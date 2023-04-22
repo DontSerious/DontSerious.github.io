@@ -164,7 +164,7 @@ func main() {
    for a < b {
       a++
       fmt.Printf("a 的值为: %d\n", a)
-      }
+   }
 
    for i,x:= range numbers {
       fmt.Printf("第 %d 位 x 的值 = %d\n", i,x)
