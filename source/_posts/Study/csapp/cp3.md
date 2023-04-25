@@ -271,3 +271,20 @@ scale:
 |    cqto     |               R[%rdx]:R[%rax] ← SignExtend(R[%rax])               |  Convert to oct word   |
 |   idivq S   | R[%rdx] ← R[%rdx]:R[%rax] mod S;<br>R[%rax] ← R[%rdx]:R[%rax] ÷ S |     Signed divide      |
 |   divq S    | R[%rdx] ← R[%rdx]:R[%rax] mod S;<br>R[%rax] ← R[%rdx]:R[%rax] ÷ S |    Unsigned divide     |
+
+# 控制
+
+## 条件码
+
+- cf: 进位标志. The most recent operation generated a carry out of the most significant bit. Used to detect overflow for unsigned operations.
+  - (unsigned) t < (unsigned) 
+  - a Unsigned overflow
+- zf: 零标志. The most recent operation yielded zero.
+  - (t == 0)
+  - Zero
+- sf: 符号标志. The most recent operation yielded a negative value.
+  - (t < 0)
+  - Negative
+- of: 溢出标志. The most recent operation caused a two's-complement overflow—either negative or positive.
+  - (a < 0 == b < 0) && (t < 0 ! = a < 0)
+  - Signed overflow
