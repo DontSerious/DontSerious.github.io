@@ -11,3 +11,5 @@ db.json
 .vscode/time.code-snippets
 .vscode/
 .vscode/settings.json
+
+.obsidian*

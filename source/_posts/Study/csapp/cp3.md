@@ -6,7 +6,7 @@ tags:
   - csapp
 toc: true
 date: 2023-04-09 14:54:13
-updated: 2023-04-16 17:01:43
+updated: 2023-04-26 20:33:45
 ---
 # 名词
 
@@ -276,15 +276,63 @@ scale:
 
 ## 条件码
 
-- cf: 进位标志. The most recent operation generated a carry out of the most significant bit. Used to detect overflow for unsigned operations.
-  - (unsigned) t < (unsigned) 
-  - a Unsigned overflow
-- zf: 零标志. The most recent operation yielded zero.
+- cf: 进位标志：最近的操作使最高位产生了进位。可用来检查无符号操作的溢出。
+  - (unsigned) t < (unsigned) a
+  - Unsigned overflow
+- zf: 零标志：最近的操作得出的结果为 0，如果两个操作数相等，零标志设置为 1
   - (t == 0)
   - Zero
-- sf: 符号标志. The most recent operation yielded a negative value.
+- sf: 符号标志：最近的操作得到的结果为负数
   - (t < 0)
   - Negative
-- of: 溢出标志. The most recent operation caused a two's-complement overflow—either negative or positive.
+- of: 溢出标志：最近的操作导致一个补码溢出--正溢出或负溢出
   - (a < 0 == b < 0) && (t < 0 ! = a < 0)
   - Signed overflow
+
+## 访问条件码
+
+条件码通常不会直接读取，常见使用方式：
+
+1. 可以根据条件码的某种组合，将一个字节设置为 0 或 1
+2. 可以条件跳转到程序的某个其他的部分
+3. 可以有条件地传送数据
+
+![](f3.14set.png)
+
+## 跳转指令
+
+![](f3.15jmp.png)
+
+```
+1	  movq	%rdi, %rax
+2	  jmp	.L2
+3	.L3:
+4	  sarq	%rax
+5	.L2:
+6	  testq	%rax, %rax
+7	  jg	.L3
+8	  rep; ret
+```
+
+汇编器产生的“. o”格式的反汇编版本如下：
+
+```
+1	0:	48 89 f8	mov	%rdi,%rax
+2	3:	eb 03		jmp	8 <loop+0x8>
+3	5:	48 d1 f8	sar	%rax
+4	8:	48 85 c0	test	%rax,%rax
+5	b:	7f f8		jg	5 <loop+0x5>
+6	d:	f3 c3		repz retq
+```
+
+链接后的程序反汇编版本：
+
+```
+1	4004d0: 48 89 f8	mov %rdi,%rax
+2	4004d3: eb 03		jmp 4004d8 <loop+0x8>
+3	4004d5: 48 d1 f8	sar %rax
+4	4004d8: 48 85 c0	test %rax,%rax
+5	4004db: 7f f8		jg 4004d5 <loop+0x5>
+6	4004dd: f3 c3		repz retq
+```
+
