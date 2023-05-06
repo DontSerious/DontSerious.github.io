@@ -6,7 +6,7 @@ tags:
   - csapp
 toc: true
 date: 2023-04-09 14:54:13
-updated: 2023-04-26 20:33:45
+updated: 2023-05-06 16:25:30
 ---
 # 名词
 
@@ -304,35 +304,148 @@ scale:
 ![](f3.15jmp.png)
 
 ```
-1	  movq	%rdi, %rax
-2	  jmp	.L2
-3	.L3:
-4	  sarq	%rax
-5	.L2:
-6	  testq	%rax, %rax
-7	  jg	.L3
-8	  rep; ret
+  movq	%rdi, %rax
+  jmp	.L2
+.L3:
+  sarq	%rax
+.L2:
+  testq	%rax, %rax
+  jg	.L3
+  rep; ret
 ```
 
 汇编器产生的“. o”格式的反汇编版本如下：
 
 ```
-1	0:	48 89 f8	mov	%rdi,%rax
-2	3:	eb 03		jmp	8 <loop+0x8>
-3	5:	48 d1 f8	sar	%rax
-4	8:	48 85 c0	test	%rax,%rax
-5	b:	7f f8		jg	5 <loop+0x5>
-6	d:	f3 c3		repz retq
+0:	48 89 f8	mov	%rdi,%rax
+3:	eb 03		jmp	8 <loop+0x8>
+5:	48 d1 f8	sar	%rax
+8:	48 85 c0	test	%rax,%rax
+b:	7f f8		jg	5 <loop+0x5>
+d:	f3 c3		repz retq
 ```
 
 链接后的程序反汇编版本：
 
 ```
-1	4004d0: 48 89 f8	mov %rdi,%rax
-2	4004d3: eb 03		jmp 4004d8 <loop+0x8>
-3	4004d5: 48 d1 f8	sar %rax
-4	4004d8: 48 85 c0	test %rax,%rax
-5	4004db: 7f f8		jg 4004d5 <loop+0x5>
-6	4004dd: f3 c3		repz retq
+4004d0: 48 89 f8	mov %rdi,%rax
+4004d3: eb 03		jmp 4004d8 <loop+0x8>
+4004d5: 48 d1 f8	sar %rax
+4004d8: 48 85 c0	test %rax,%rax
+4004db: 7f f8		jg 4004d5 <loop+0x5>
+4004dd: f3 c3		repz retq
 ```
+
+## 条件控制实现条件分支
+
+goto 风格代码与汇编代码实现条件控制时非常相似
+
+c 语言中 if-else 语句的通用形式：
+
+```c
+if (test-expr)
+	then-statement
+else
+	else-statement
+```
+
+Goto 风格代码块：
+
+```c
+	t = text-expr;
+	if (!t)
+		goto false;
+	then-statement
+	goto done;
+false:
+	else-statement
+done:
+```
+
+其中的 goto 在汇编中为 jmp 指令
+
+### 练习
+
+```c
+long test(long x, long y, long z) {
+  long val = x + y + z;
+  if (x < -3) {
+  	if (y < z)
+  		val = x * y;
+  	else
+  		val = y * z;
+  } else if (x > 2)
+	  	val = x * z;
+  return val;
+}
+```
+
+gcc 产生如下汇编代码
+
+```
+  long test(long x, long y, long z)
+  x in %rdi, y in %rsi, z in %rdx
+  
+  test:
+  leaq	(%rdi,%rsi), %rax
+  addq	%rdx, %rax
+  cmpq	$-3, %rdi
+  jge	.L2
+  cmpq	%rdx, %rsi
+  jge	.L3
+  movq	%rdi, %rax
+  imulq	%rsi, %rax
+  ret
+  .L3:
+  movq	%rsi, %rax
+  imulq	%rdx, %rax
+  ret
+  .L2:
+  cmpq	$2, %rdi
+  jle	.L4
+  movq	%rdi, %rax
+  imulq	%rdx, %rax
+  .L4:
+  rep; ret
+```
+
+## 条件传送实现条件分支
+
+条件操作的传统方式简单而通用，但在现代处理器上可能会非常低效。
+
+![](f3.18cmov.png)
+条件传送指令。当传送条件满足时，指令把源值 S 复制到目的 R
+
+同条件跳转不同，处理器无需预测测试的结果就可以执行条件传送。**但不是所有情况下都可以使用条件传送。**
+
+```c
+v = test-expr ? then-expr : else-expr
+```
+
+用条件控制转移的标准方法编译：
+
+```c
+  if (!test-expr)
+  	goto false;
+  v = then-expr;
+  goto done;
+false:
+  v = else-expr;
+done:
+```
+
+基于条件传送代码会对两数都求值，可以用下面的抽象代码描述：
+
+```c
+v = then-expr;
+ve = else-expr;
+t = test-expr;
+if (!t) v = ve;
+```
+
+- GCC 只有在两个表达式都很容易计算时，例如表达式分别都是一条加法指令，它才会使用条件传送。
+- 即使许多分支预测错误的开销会超过更复杂的计算，GCC 还是会使用条件控制转移。
+- 条件数据传送提供了一种用条件控制转移来实现条件操作的替代策略。它们只能用于非常受限制的情况。
+
+## 循环
 
