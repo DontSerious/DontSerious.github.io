@@ -6,7 +6,7 @@ tags:
   - csapp
 toc: true
 date: 2023-04-09 14:54:13
-updated: 2023-05-06 17:07:09
+updated: 2023-05-09 15:52:22
 ---
 # 名词
 
@@ -528,4 +528,45 @@ loop:
 	goto loop;
 done:
 ```
+
+# 过程
+
+## 运行时栈
+
+![](f3.25stack%20frame.png)
+
+- 通用的栈帧结构
+- 栈用来传递参数、存储返回信息、保持寄存器，以及局部存储
+- 为了提高空间和时间效率，`x86-64` 过程只分配自己所需要的栈帧部分
+- 许多过程有 6 个或者更少的参数，那么所有的参数都可以通过寄存器传递
+- 实际上，许多函数甚至根本不需要栈帧
+- 当所有的局部变量都可以保存在寄存器中，而且该函数不会调用任何其他函数时，就可以这样处理。
+
+### 练习
+
+汇编代码：
+
+```
+	Disassembly of leaf(long y)
+	y in %rdi
+1	0000000000400540 <leaf>:
+2	400540:	48 8d 47 02	lea	0x2(%rdi),%rax	L1: z+2
+3	400544:	c3		retq			L2: Return
+
+4	0000000000400545 <top>:
+	Disassembly of top(long x)
+	x in %rdi
+5	400545:	48 83 ef 05	 sub	$0x5,%rdi	T1: x-5
+6	400549: e8 f2 ff ff ff	callq   400540 <leaf>	T2: Call leaf(x-5)
+7	40054e: 4801c0		add	%rax,%rax	T3: Double result
+8	400551:c3		retq			T4: Return
+	...
+	Call to top from function main
+9	40055b: e8 e5 ff ff ff	callq	400545 <top>	M1: Call top(100)
+10	400560: 4889c2		mov	%rax,%rdx	M2: Resume
+```
+
+代码执行过程表：
+
+![](f3.27.png)
 
