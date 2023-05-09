@@ -68,7 +68,6 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 2. IA32中寄存器扩展为32位，标号有 %eax ~ %esp
 3. X86-64中寄存器扩展成64位，编号有 %rax ~ %rsp，还增加了 8 个寄存器
 
-
 | 63 ~ 31 | 31 ~ 15 | 15 ~ 7 | 7 ~ 0 |     usage     |
 | :-----: | :-----: | :----: | :---: | :-----------: |
 |  %rax   |  %eax   |  %ax   |  %al  | return value  |
@@ -448,4 +447,85 @@ if (!t) v = ve;
 - 条件数据传送提供了一种用条件控制转移来实现条件操作的替代策略。它们只能用于非常受限制的情况。
 
 ## 循环
+
+### while 循环
+
+C
+
+```c
+long fact_while(long n)
+{
+	long result = 1;
+	while (n > 1) {
+		result *= n;
+		n = n-1;
+	}
+	return result;
+}
+```
+
+Goto version
+
+```c
+long fact_while_jm_goto(long n)
+{
+	long result = 1;
+	goto test;
+loop:
+	result *= n;
+	n = n-1;
+test:
+	if (n > 1)
+	goto loop;
+	return result;
+}
+```
+
+assembly-language code
+
+```
+long fact_while(long n)
+n in %rdi
+
+fact_while:
+  movl	$1, %eax	         Set result = 1
+  jmp	.L5		             Goto test
+.L6:		             loop:
+  imulq	%rdi, %rax	         Compute result *= n
+  subq	$1, %rdi	         Decrement n
+.L5:		             test:
+  cmpq	$1, %rdi	         Compare n:1
+  jg	.L6		             If >, goto loop
+  rep; ret		             Return
+```
+
+### Guarded-do 翻译方法
+
+- 首先使用条件分支
+- 如果初始条件不成立就跳过循环，把代码变换为 do-while 循环。
+- 当使用较高优化等级时，例如使用命令行选项 `-O1` 时，GCC 会采用这种策略。
+
+```c
+t = test-expr;
+if (!t)
+	goto done;
+do
+	body-statement
+	while (test-expr);
+done:
+```
+
+Goto version
+
+```c
+t = test-expr;
+if (!t)
+	goto done;
+loop:
+	body-statement
+	t = test-expr;
+	if (t)
+	goto loop;
+done:
+```
 

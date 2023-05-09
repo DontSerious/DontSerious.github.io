@@ -33,3 +33,11 @@ updated: 2023-04-01 13:53:26
   - [ ] gcc
   - [ ] makefile/cmake
   - [ ] clang icc gcc
+
+项目：
+
+- [ ] Standford CS 144 计网
+- [ ] MIT 6. S 081 操作系统
+- [ ] MIT 6.824 分布式系统
+- [ ] MIT 6.830/814 数据库系统
+- [ ] CMU 15-445 数据库系统
