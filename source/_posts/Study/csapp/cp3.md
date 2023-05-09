@@ -94,7 +94,7 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 
 ## 操作数指示符
 
-![Alt text](../../../static/CSAPP/f3.3.png)
+![](source/static/CSAPP/f3.3.png)
 
 - 立即数(immediate): 在ATT格式的汇编代码中，立即数的书写方式是 `$` 后面跟一个用标准 C 表示法表示的整数，例如`$-577`、`$0x1F`。
 - 寄存器(register): ra 表示任意寄存器a，用引用 R[ra] 来代表它的值
@@ -296,11 +296,11 @@ scale:
 2. 可以条件跳转到程序的某个其他的部分
 3. 可以有条件地传送数据
 
-![](f3.14set.png)
+![](source/static/CSAPP/f3.14set.png)
 
 ## 跳转指令
 
-![](f3.15jmp.png)
+![](source/static/CSAPP/f3.15jmp.png)
 
 ```
   movq	%rdi, %rax
@@ -412,7 +412,8 @@ gcc 产生如下汇编代码
 
 条件操作的传统方式简单而通用，但在现代处理器上可能会非常低效。
 
-![](f3.18cmov.png)
+![](source/static/CSAPP/f3.18cmov.png)
+
 条件传送指令。当传送条件满足时，指令把源值 S 复制到目的 R
 
 同条件跳转不同，处理器无需预测测试的结果就可以执行条件传送。**但不是所有情况下都可以使用条件传送。**
@@ -533,7 +534,7 @@ done:
 
 ## 运行时栈
 
-![](f3.25stack%20frame.png)
+![](source/static/CSAPP/f3.25stack%20frame.png)
 
 - 通用的栈帧结构
 - 栈用来传递参数、存储返回信息、保持寄存器，以及局部存储
@@ -568,5 +569,4 @@ done:
 
 代码执行过程表：
 
-![](f3.27.png)
-
+![](source/static/CSAPP/f3.27.png)
