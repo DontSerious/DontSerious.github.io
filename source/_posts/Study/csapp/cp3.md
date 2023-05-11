@@ -94,7 +94,7 @@ C预处理器扩展源代码，插入所有用`#include`命令指定的文件，
 
 ## 操作数指示符
 
-![](../../../static/CSAPP/f3.3.png)
+![](../../../static/CSAPP/cp3/f3.3.png)
 
 - 立即数(immediate): 在ATT格式的汇编代码中，立即数的书写方式是 `$` 后面跟一个用标准 C 表示法表示的整数，例如`$-577`、`$0x1F`。
 - 寄存器(register): ra 表示任意寄存器a，用引用 R[ra] 来代表它的值
@@ -296,11 +296,11 @@ scale:
 2. 可以条件跳转到程序的某个其他的部分
 3. 可以有条件地传送数据
 
-![](../../../static/CSAPP/f3.14set.png)
+![](../../../static/CSAPP/cp3/f3.14set.png)
 
 ## 跳转指令
 
-![](../../../static/CSAPP/f3.15jmp.png)
+![](../../../static/CSAPP/cp3/f3.15jmp.png)
 
 ```
   movq	%rdi, %rax
@@ -412,7 +412,7 @@ gcc 产生如下汇编代码
 
 条件操作的传统方式简单而通用，但在现代处理器上可能会非常低效。
 
-![](../../../static/CSAPP/f3.18cmov.png)
+![](../../../static/CSAPP/cp3/f3.18cmov.png)
 
 条件传送指令。当传送条件满足时，指令把源值 S 复制到目的 R
 
@@ -534,7 +534,7 @@ done:
 
 ## 运行时栈
 
-![](../../../static/CSAPP/f3.25stack%20frame.png)
+![](../../../static/CSAPP/cp3/f3.25stack%20frame.png)
 
 - 通用的栈帧结构
 - 栈用来传递参数、存储返回信息、保持寄存器，以及局部存储
@@ -547,7 +547,7 @@ done:
 
 汇编代码：
 
-```
+```assembly
 	Disassembly of leaf(long y)
 	y in %rdi
 1	0000000000400540 <leaf>:
@@ -569,4 +569,71 @@ done:
 
 代码执行过程表：
 
-![](../../../static/CSAPP/f3.27.png)
+![](../../../static/CSAPP/cp3/f3.27.png)
+
+## 数据传送
+
+函数传参少于等于六个时的寄存器：
+
+![](../../../static/CSAPP/cp3/f3.28passing%20arguments.png)
+
+- 大于六个的部分使用栈传递
+- 7~n 放到栈上，而参数 7 位于栈顶
+
+### 例如
+
+C code
+
+```c
+void proc(long a1, long *a1p,
+	  int a2, int *a2p,
+	  short a3, short *a3p,
+	  char a4, char *a4p)
+{
+	*a1p += a1;
+	*a2p += a2;
+	*a3p += a3;
+	*a4p += a4;
+}
+```
+
+Assembly code
+
+```Assembly
+	void proc(a1, a1p, a2, a2p, a3, a3p, a4, a4p)
+	Arguments passed as follows:
+	  a1 in %rdi (64 bits)
+	  a1p in %rsi (64 bits)
+	  a2 in %edx (32 bits)
+	  a2p in %rcx (64 bits)
+	  a3 in %r8w (16 bits)
+	  a3p in %r9 (64 bits)
+	  a4 at %rsp+8 ( 8 bits)
+	  a4p at %rsp+16 (64 bits)
+1	proc:
+2	movq	16(%rsp), %rax	Fetch a4p (64 bits)
+3	addq	%rdi, (%rsi)	*a1p += a1 (64 bits)
+4	addl	%edx, (%rcx)	*a2p += a2 (32 bits)
+5	addw	%r8w, (%r9)	*a3p += a3 (16 bits)
+6	movl	8(%rsp), %edx	Fetch a4 (8 bits)
+7	addb	%dl, (%rax)	*a4p += a4 (8 bits)
+8	ret			Return
+```
+
+超出六个部分的栈帧结构：
+
+![](../../../static/CSAPP/cp3/f3.30stack%20frame.png)
+
+## 寄存器中的局部存储空间
+
+x86-64采用统一的寄存器使用管理：
+- 寄存器 %rbx、%rbp 和 %r12 ~ %r15 被划分为**被调用者保存寄存器**
+- P 调用过程 Q 时，Q 必须保存这些寄存器的值，保证他们的值在 Q 返回到 P 时与 Q 被调用时是一样的
+- Q 为了保存一个寄存器的值不变
+	- 要么不改变它
+	- 要么把原始的值压入栈中，改变寄存器的值，在返回前从栈中弹出旧值
+	- 压入寄存器的值会在栈帧中创建标号为“被保存的寄存器”的一部分
+- 所有其他的寄存器，除了栈指针 %rsp ，都分类为**调用者保存寄存器**
+	- 这意味着任何函数都能修改他们
+	- 调用之前首先保存好这个数据是调用者 (P) 的责任
+
