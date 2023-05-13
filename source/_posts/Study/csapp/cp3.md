@@ -6,7 +6,7 @@ tags:
   - csapp
 toc: true
 date: 2023-04-09 14:54:13
-updated: 2023-05-09 15:52:22
+updated: 2023-05-13 17:17:42
 ---
 # 名词
 
@@ -636,4 +636,68 @@ x86-64采用统一的寄存器使用管理：
 - 所有其他的寄存器，除了栈指针 %rsp ，都分类为**调用者保存寄存器**
 	- 这意味着任何函数都能修改他们
 	- 调用之前首先保存好这个数据是调用者 (P) 的责任
+
+# 数组分配和访问
+
+## 嵌套的数组
+
+`int A[5][3]` 等价于 `typedef int row3_t[3]; row3_t A[5];`
+
+![](../../../static/CSAPP/cp3/f3.36row-major.png)
+
+将数组 `A[i][j]` 复制到寄存器 %eax 中：
+
+```assembly
+	A in %rdi, i in %rsi, and j in %rdx
+1	leaq	(%rsi,%rsi,2), %rax		Compute 3i
+2	leaq	(%rdi,%rax,4), %rax		Compute xA + 12i
+3	movl	(%rax,%rdx,4), %eax		Read from M[xA + 12i + 4]
+```
+
+### 练习
+
+C code
+
+```c
+/* Set all diagonal elements to val */
+void fix_set_diag(fix_matrix A, int val) {
+	long i;
+	for (i = 0; i < N; i++)
+	  A[i][i] = val;
+}
+```
+
+Optimization assembly code
+
+```
+fix_set_diag:
+void fix_set_diag(fix_matrix A, int val)
+A in %rdi, val in %rsi
+
+	movl	$0, %eax
+.L13:
+	movl	%esi, (%rdi,%rax)
+	addq	$68, %rax
+	cmpq	$1088, %rax
+	jne	.L13
+	rep; ret
+```
+
+Optimization c code
+
+```c
+/* Set all diagonal elements to val */
+void fix_set_diag_opt(fix_matrix A, int val) {
+	int *Abase = &A[0][0];
+	long i = 0;
+	long iend = N * (N + 1);
+
+	do {
+		Abase[i] = val;
+		i += (N + 1);
+	} while (i != iend);
+}
+```
+
+达到下一个对角线元素的地址恰好为 `i += (N + 1)`
 

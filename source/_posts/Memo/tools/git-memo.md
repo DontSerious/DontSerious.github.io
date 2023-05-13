@@ -1,14 +1,14 @@
 ---
 title: git
 date: 2023-03-18 15:41:53
-updated: 2023-04-08 13:39:45
+updated: 2023-05-13 09:27:45
 categories:
 - Memo
 tags:
 - tools
 toc: true
 ---
-# 配置
+# Linux配置
 
 ## 将 SSH 密钥添加到 ssh-agent
 
@@ -76,6 +76,33 @@ git config --global user.name  "username"
 git config --global user.email  "email"
 git config --replace-all user.name "name"
 git config --replace-all user.email "email"
+```
+
+# Windows 配置
+
+## 安装 ssh 服务
+
+1. 打开“设置”，选择“应用”>“应用和功能”，然后选择“可选功能” 。
+2. 安装 OpenSSH 客户端以及 OpenSSH 服务器
+
+## 启动并配置 OpenSSH 服务器
+
+- 管理员运行 PS
+
+```powershell
+# Start the sshd service
+Start-Service sshd
+
+# OPTIONAL but recommended:
+Set-Service -Name sshd -StartupType 'Automatic'
+
+# Confirm the Firewall rule is configured. It should be created automatically by setup. Run the following to verify
+if (!(Get-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -ErrorAction SilentlyContinue | Select-Object Name, Enabled)) {
+    Write-Output "Firewall Rule 'OpenSSH-Server-In-TCP' does not exist, creating it..."
+    New-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+} else {
+    Write-Output "Firewall rule 'OpenSSH-Server-In-TCP' has been created and exists."
+}
 ```
 
 # 常用指令
