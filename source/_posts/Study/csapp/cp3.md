@@ -701,3 +701,101 @@ void fix_set_diag_opt(fix_matrix A, int val) {
 
 达到下一个对角线元素的地址恰好为 `i += (N + 1)`
 
+## 变长数组
+
+- 在一个循环中引用变长数组时，编译器常常可以利用访问模式的规律性来优化索引的计算。
+- 如果允许使用优化，GCC 能够识别出程序访问多维数组的元素的步长。
+- 生成的代码会避免直接应用规律等式会导致的乘法。
+- 无论生成基于指针的代码还是基于数组的代码，这些优化都能显著提高程序的性能。
+
+# 异质的数据结构
+
+## 结构 struct
+
+```c
+struct rec {
+	int i;
+	int j;
+	int a[2];
+	int *p;
+};
+```
+
+对应在内存中为：
+
+![](../../../static/CSAPP/cp3/f3struct.png)
+
+## 联合 union
+
+```c
+struct S3 {
+	char c;
+	int i[2];
+	double v;
+};
+union U3 {
+	char c;
+	int i[2];
+	double v;
+};
+```
+
+对应在内存中为：
+
+![](../../../static/CSAPP/cp3/f3union.png)
+
+- 一个 union 的总的大小等于它最大字段的大小
+- 它会绕过 C 语言类型系统提供的安全措施
+- 已知一个数据结构中两个不同字段的使用是互斥的，若将这两个字段声明为 union 的一部分，而不作为 struct 的一部分，会减少分配空间的总量
+
+### 例一
+
+二叉树数据结构：
+
+```c
+struct node_s {
+	struct node_s *left;
+	struct node_s *right;
+	double data[2];
+};
+```
+
+- 一个节点需要 32 个字节
+
+改为 union：
+
+```c
+union node_u {
+	struct {
+	  union node_u *left;
+	  union node_u *right;
+	} internal;
+	double data[2];
+};
+```
+
+- 一个节点只需要 16 个字节
+- 但这样编码没法确定一个给定的节点是叶子节点还是内部节点
+	- 可以通过引入一个枚举类型，定义这个 union 中可能的不同选择，然后再创建一个结构
+
+```c
+typedef enum { N_LEAF, N_INTERNAL } nodetype_t;
+
+struct node_t {
+	nodetype_t type;
+	union {
+	  struct {
+	  	struct node_t *left;
+	  	struct node_t *right;
+	  } internal;
+	  double data[2];
+	} info;
+};
+```
+
+- 这个结构总共需要 24 个字节
+	- type 是 4 个字节
+	- `info.internal.left` 和 `info.internal.right` 各要 8 个字节
+	- `info.data` 要 16 个字节
+	- 在字段 type 和 union 的元素之间需要 4 个字节的填充
+- 过于麻烦带来的收益较小，但是对于较多字段的数据结构还是很吸引人的
