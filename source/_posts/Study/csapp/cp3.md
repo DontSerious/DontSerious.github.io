@@ -833,3 +833,49 @@ struct S1 {
 
 # 在机器级程序中将控制与数据结合起来
 
+## 内存越界引用和缓冲区溢出
+
+库函数 `gets` 的一个实现：
+
+```c
+/* Implementation of library function gets() */
+char *gets(char *s)
+{
+	int c;
+	char *dest = s;
+	while ((c = getchar()) != `n' && c != EOF)
+		*dest++ = c;
+	if (c == EOF && dest == s)
+		/* No characters read */
+		return NULL;
+	*dest++ = `0'; /* Terminate string */
+	return s;
+}
+/* Read input line and write it back */
+void echo()
+{
+	char buf[8]; /* Way too small! */
+	gets(buf);
+	puts(buf);
+}
+```
+
+汇编代码：
+
+```assembly
+void echo()
+echo:
+subq	$24, %rsp	Allocate 24 bytes on stack
+movq	%rsp, %rdi	Compute buf as %rsp
+call	gets		Call gets
+movq	%rsp, %rdi	Compute buf as %rsp
+call	puts		Call puts
+addq	$24, %rsp	Deallocate stack space
+ret			Return
+```
+
+echo 函数的栈组织：
+
+![](../../../static/CSAPP/cp3/f3.40echo.png)
+
+存在以下问题：
