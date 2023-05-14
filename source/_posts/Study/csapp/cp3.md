@@ -879,3 +879,10 @@ echo 函数的栈组织：
 ![](../../../static/CSAPP/cp3/f3.40echo.png)
 
 存在以下问题：
+
+| Characters typed | Additional corrupted state |
+| :--------------: | :------------------------: |
+|       0–7        |            None            |
+|       9–23       |     Unused stack space     |
+|      24–31       |       Return address       |
+|       32+        |   Saved state in caller    |
