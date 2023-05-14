@@ -105,6 +105,12 @@ if (!(Get-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -ErrorAction SilentlyCon
 }
 ```
 
+## 配置开机自动 ssh-add
+
+1. 打开 git 根目录里的 etc 文件夹
+2. 编辑 bashrc 文件，添加一行 ssh-add
+3. 每次开机会自动执行这一行命令
+
 # 常用指令
 
 ## 切换远程仓库
