@@ -6,7 +6,7 @@ tags:
   - csapp
 toc: true
 date: 2023-04-09 14:54:13
-updated: 2023-05-14 22:27:08
+updated: 2023-05-19 11:12:54
 ---
 # 名词
 
@@ -906,3 +906,165 @@ echo 函数的栈组织：
 	- 在程序每次运行时随机产生
 
 ### 限制可执行代码区域
+
+# 浮点代码
+
+## 媒体 (media) 指令
+
+- 这些指令的本意是允许多个操作以并行模式执行，称为单指令多数据或 SIMD
+	- 这种模式中，对多个不同的数据并行执行同一个操作
+- 最早出现的是 MMX ，然后从 MMX 到 SSE (streaming SIMD extensions 流式 SIMD 扩展)，以及最新的 AVX (advanced vector extensions 高级向量扩展)
+- 每个扩展都是管理寄存器组中的数据
+	- MMX 中称为 “MM” 寄存器 (64 位)
+	- SSE 中称为 "XMM" 寄存器 (128 位)
+	- AVX 中称为 "YMM" 寄存器 (256 位)
+	- 所以每个 YMM 寄存器可以存放 8 个 32 位值，或 4 个 64 位值，这些值可以是整数或者浮点数
+- 当对标量数据操作时，这些寄存器只保存浮点数，而且只使用低 32 位 (对于 float) 或 64 位 (对于 double) 
+
+![](../../../static/CSAPP/cp3/f3.45Media%20registers.png)
+
+## 浮点传送和转换操作
+
+- 引用内存的指令是标量指令，意味着它们只对单个而不是一组封装好的数据值进行操作
+- 建议 32 位内存数据满足 4 字节对齐，64 位满足 8 字节对齐
+
+![](../../../static/CSAPP/cp3/f3.46Floating-point%20movement%20instructions.png)
+
+- 浮点传送指令。X: XMM 寄存器，M32: 32-bit memory range; M64: 64-bit memory range
+- 对于在两个 XMM 寄存器之间传送数据，GCC 会使用上图倒数两种指令之一
+	- 这种情况，程序复制整个寄存器还是只复制低位值既不会影响程序功能也不会影响执行速度
+	- 所以使用这些指令还是针对标量数据的指令没有实质上的差别
+- 字母 a 表示 “aligned (对齐的)”
+- 当用于读写内存时，如果地址不满足 16 字节对齐，它们会导致异常
+- 但在两个寄存器之间传送数据，绝对不会出现错误对齐的情况
+
+![](../../../static/CSAPP/cp3/f3.47Two-operand%20floating-point%20conversion%20operations.png)
+
+- 这些操作将浮点数转换成整数
+
+![](../../../static/CSAPP/cp3/f3.48Three-operand%20floating-point%20conversion%20operations.png)
+
+- 第一个源的数据类型转换成目的的数据类型，它读自内存或一个通用的目的寄存器
+- 第二个源值只会影响结果的高位字节，可以忽略
+- 目标必须是 XMM 寄存器
+- 最常见的使用场景中，第二个源和目的操作数都是一样的
+	- 例如：`vcvtsi2sdq	%rax, %xmm1, %xmm1`
+	- 它从 %rax 中读出一个长整数，转换为数据类型 double，最后把结果放进 XMM 寄存器 %xmm1 的低字节中
+
+`vunpcklps` 指令通常用来交叉放置来自两个 XMM 寄存器的值，把他们存储到第三个寄存器中。若一个源寄存器的内容为字 `[s3, s2, s1, s0]` ，另一个源寄存器的内容 `[d3, d2, d1, d0]`，那么目的寄存器的值会是 `[s1, d1, s0, d0]` 。
+
+### 例子
+
+c code
+
+```c
+double fcvt(int i, float *fp, double *dp, long *lp)
+{
+	float f = *fp; double d = *dp; long l = *lp;
+	*lp = (long) d;
+	*fp = (float) i;
+	*dp = (double) l;
+	return (double) f;
+}
+```
+
+x86-64 assembly code
+
+```assembly
+double fcvt(int i, float *fp, double *dp, long *lp)
+	i in %edi, fp in %rsi, dp in %rdx, lp in %rcx
+fcvt:
+ vmovss	(%rsi), %xmm0			Get f = *fp
+ movq	(%rcx), %rax			Get l = *lp
+ vcvttsd2siq	(%rdx), %r8		Get d = *dp and convert to long
+ movq	%r8, (%rcx)			Store at lp
+ vcvtsi2ss	%edi, %xmm1, %xmm1	Convert i to float
+ vmovss	%xmm1, (%rsi)			Store at fp
+ vcvtsi2sdq	%rax, %xmm1, %xmm1	Convert l to double
+ vmovsd	%xmm1, (%rdx)			Store at dp
+The following two instructions convert f to double
+ vunpcklps	%xmm0, %xmm0, %xmm0
+ vcvtps2pd	%xmm0, %xmm0
+ ret					Return f
+```
+
+## 浮点数操作
+
+![](../../../static/CSAPP/cp3/f3.49Scalar%20floating-point%20arithmetic%20operations.png)
+
+- S1 可以是一个 XMM 寄存器或一个内存位置
+- S2 和 D 必须都是 XMM 寄存器
+
+### 例子
+
+assembly code
+
+```
+double funct2(double w, int x, float y, long z)
+w in %xmm0, x in %edi, y in %xmm1, z in %rsi
+
+funct2:
+  vcvtsi2ss	%edi, %xmm2, %xmm2
+  vmulss	%xmm1, %xmm2, %xmm1
+  vunpcklps	%xmm1, %xmm1, %xmm1
+  vcvtps2pd	%xmm1, %xmm2
+  vcvtsi2sdq	%rsi, %xmm1, %xmm1
+  vdivsd	%xmm1, %xmm0, %xmm0
+  vsubsd	%xmm0, %xmm2, %xmm0
+  ret
+```
+
+转换以上汇编代码为 c 语言版本：`y * x - w / z`
+
+## 定义和使用浮点常数
+
+- 和整数运算操作不同，AVX 浮点操作不能以立即数值作为操作数
+- 编译器必须为所有的常量值分配和初始化存储空间，然后代码再把这些值从内存读入
+
+### 例子
+
+c code
+
+```c
+double cel2fahr(double temp)
+{
+	return 1.8 * temp + 32.0;
+}
+```
+
+assembly code
+
+```assembly
+double cel2fahr(double temp) temp in %xmm0
+cel2fahr:
+  vmulsd	.LC2(%rip), %xmm0, %xmm0	Multiply by 1.8
+  vaddsd	.LC3(%rip), %xmm0, %xmm0	Add 32.0
+  ret
+.LC2:
+  .long	3435973837				Low-order 4 bytes of 1.8
+  .long	1073532108				High-order 4 bytes of 1.8
+.LC3:
+  .long	0					Low-order 4 bytes of 32.0
+  .long	1077936128				High-order 4 bytes of 32.0
+```
+
+## 位级操作
+
+![](../../../static/CSAPP/cp3/f3.50Bitwise%20operations.png)
+
+## 比较操作
+
+![](../../../static/CSAPP/cp3/f3.11.6.png)
+
+- S1 可以在 XMM 寄存器中也可以在内存中
+- S2 必须在 XMM 寄存器中
+
+![](../../../static/CSAPP/cp3/f3.11.6condition%20codes.png)
+
+- 浮点比较指令会设置三个条件码：
+	- 零标志位 `ZF`
+	- 进位标志位 `CF`
+	- 奇偶标志位 `PF`
+		- 当两个操作数中人一个是 NaN 时就会设置该位
+- 当任意操作数为 NaN，就会出现 `Unordered` 情况
+

@@ -473,6 +473,8 @@ bias = 2^(k-1)^ - 1
 
 # 浮点数
 
+![](../../../static/CSAPP/cp2/f2.32floating-point%20formats.png)
+
 ## IEEE浮点表示
 
 定位表示法不能非常有效地表示非常大的是数字，所以我们希望通过给定x和y的值表示形如 x * 2^y^ 的数。  
