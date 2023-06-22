@@ -1,7 +1,7 @@
 ---
 title: cp4 处理器体系结构
 date: 2023-05-24 14:35:45
-updated: 2023-06-21 10:35:03
+updated: 2023-06-22 20:20:34
 categories:
   - Study
 tags:
@@ -126,3 +126,198 @@ word Min3 = [
 ![](../../../static/CSAPP/cp4/f4.20pushq%20popq.png)
 
 ![](../../../static/CSAPP/cp4/f4.21jxx%20call%20ret.png)
+
+## SEQ
+
+SEQ 是能执行 fetch, decode, execute, memory, write back, and PC update 这些计算的硬件结构的抽象表示
+
+### 硬件结构
+
+![](../../../static/CSAPP/cp4/f4.22SEQ1.png)
+
+SEQ 的抽象视图，一种顺序实现
+
+![](../../../static/CSAPP/cp4/f4.23SEQ2.png)
+
+- 白色方框表示时钟寄存器。PC 是 SEQ 中唯一的时钟寄存器
+- 浅蓝色方框表示硬件单元。不必关心它们的细节设计
+- 线路名字在白色圆圈中说明
+- 宽度为字长的数据连接用中等粗度的线表示。每条这样的线实际上都代表一簇 64 根线并列连在一起将数据传送到硬件的另一部分
+- 宽度为字节或更窄的数据连接用细线表示。根据线上要携带的值的类型，实际上都代表一簇 4 根或 8 根线
+- 单个位的连接用虚线表示。代表芯片上单元与块之间传递的控制值
+
+![](../../../static/CSAPP/cp4/f4.24.png)
+
+### 时序
+
+**从不回读**：Y86-64 指令集的原则，处理器从来不需要为了完成一条指令的执行而去读由该指令更新了的状态
+
+SEQ 的实现包括组合逻辑和两种存储设备：
+- 组合逻辑不需要任何时序或控制，只要输入变化了，值就通过逻辑门网络传播
+- 时钟寄存器：程序计数器和条件码寄存器
+- 随机访问存储器：寄存器文件、指令内存和数据内存
+
+有四个单元需要对它们的时序进行明确的控制：程序计数器、条件码寄存器、数据内存和寄存器文件
+- 它们都通过一个时钟信号来控制，它触发将新值装载到寄存器以及将值写到随机访问寄存器
+- 每个时钟周期，程序计数器都会装载新的指令地址
+- 只有执行整数运算指令时，才会写数据内存
+- 寄存器文件的两个写端口允许每个时钟周期更新两个程序寄存器，不过我们可以用特殊的寄存器 ID 0xF 作为端口地址，来表明在此端口不应该执行写操作
+
+#### 例子
+
+```assembly
+1	0x000:	irmovq $0x100, %rbx	   # %rbx <-- 0x100
+2	0x00a:	irmovq $0x200,%rdx	   # %rdx <-- 0x200
+3	0x014:	addq %rdx, %rbx	       # %rbx <-- 0x300 CC <-- 000
+4	0x016:	je dest	               # Not taken
+5	0x0lf:	rmmovq %rbx,0(%rdx)	   # M[0x200] <-- 0x300
+6	0x029:	dest: halt
+```
+
+![](../../../static/CSAPP/cp4/f4.25SEQ3.png) 
+
+### SEQ阶段的实现
+
+![](../../../static/CSAPP/cp4/f4.26HCL%20values.png)
+
+#### fetch 阶段
+
+![](../../../static/CSAPP/cp4/f4.27SEQ%20fetch.png)
+
+根据 icode 值可以计算三个一位的信号：
+- instr_valid：这个字节对应于一个合法的 Y86-64 指令吗？这个信号用来发现不合法的指令
+- need_regids：这个指令包括一个寄存器指示符字节吗？
+- need_valC：这个指令包括一个常数字吗？
+- (当指令地址越界时会产生的)信号 instr_valid 和 imem_error 在访存阶段被用来产生状态码
+
+```HCL
+bool need_regids =
+	icode in { IRRMOVQ, IOPQ, IPUSHQ, IPOPQ, IIRMOVQ, IRMMOVQ, IMRMOVQ };
+
+bool need_valC =
+	icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL };
+```
+
+Align 对剩下 9 个字节的处理：
+- 当计算出来的信号 need_regids 为 1 时，字节 1 被分开装入寄存器指示符 rA 和 rB 中
+	- 否则，这两个字段会被设为 0xF (RNONE) 表明这条指令没有指明寄存器
+	- 因此，可以将信号 rA 和 rB 看成，要么放着我们想要访问的寄存器，要么表明不需要访问任何寄存器
+- 根据 need_valC 的值，要么根据字节 1~8 来产生 valC ，要么根据字节 2~9 产生
+- PC 增加器硬件单元根据当前的 PC 以及以上两个信号的值产生 valP
+	- PC 值为 p、need_regids 值 r 以及 need_valC 值 i
+	- 增加器产生值  p + 1 + r + 8i
+
+#### Decode 和 Write-Back 阶段
+
+![](../../../static/CSAPP/cp4/f4.28SEQ%20decode%20write-back.png)
+
+```HCL
+word srcA = [
+		icode in { IRRMOVQ, IRMMOVQ, IOPQ, IPUSHQ } : rA;
+		icode in { IPOPQ, IRET } : RRSP; 
+		1 : RNONE; # Don't need register
+];
+
+word srcB = [
+		icode in { IRMMOVQ, IOPQ, IMRMOVQ } : rB;
+		icode in { IPOPQ, IPUSHQ, IRET, ICALL } : RRSP; 
+		1 : RNONE; # Don't need register
+];
+```
+
+```HCL
+# WARNING: Conditional move not implemented correctly here word
+dstE = [
+	icode in { IRRMOVQ } : rB;
+	icode in { IIRMOVQ, IOPQ} : rB;
+	icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
+	1 : RNONE; # Don't write any register
+];
+
+dstM = [
+	icode in { IMRMOVQ, IPOPQ } : rA;
+	1 : RNONE; # Don't write any register
+];
+
+```
+
+#### Execute 阶段
+
+![](../../../static/CSAPP/cp4/f4.29SEQ%20execute.png)
+
+```HCL
+word aluA = [
+	icode in { IRRMOVQ, IOPQ } : valA;
+	icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ } : valC;
+	icode in { ICALL, IPUSHQ } : -8;
+	icode in { IRET, IPOPQ } : 8;
+	# Other instructions don't need ALU
+];
+
+word aluB = [
+	icode in { IRMMOVQ, IMRMOVQ, IOPQ, ICALL, IPUSHQ, IRET, IPOPQ } : valB;
+	icode in { IRRMOVQ, IIRMOVQ } : 0;
+	# Other instructions don't need ALU
+];
+```
+
+```HCL
+word alufun = [
+	icode == IOPQ : ifun;
+	1 : ALUADD;
+];
+
+bool set_cc = icode in { IOPQ };
+```
+
+#### Memory 阶段
+
+![](../../../static/CSAPP/cp4/f4.30SEQ%20memory.png)
+
+```HCL
+word mem_addr = [
+	icode in { IRMMOVQ, IPUSHQ, ICALL, IMRMOVQ } : valE;
+	icode in { IPOPQ, IRET } : valA;
+	# Other instructions don't need address
+];
+
+word mem_data = [
+	# Value from register
+	icode in { IRMMOVQ, IPUSHQ } : valA;
+	# Return PC
+	icode == ICALL : valP;
+	# Default: Don't write anything
+];
+```
+
+```
+bool mem_write = icode in { IRMMOVQ, IPUSHQ, ICALL };
+bool mem_read = icode in { IMRMOVQ, IPOPQ, IRET };
+```
+
+```
+## Determine instruction status
+word Stat = [
+	imem_error | | dmem_error : SADR;
+	!instr_valid: SINS;
+	icode == IHALT : SHLT;
+	1 : SAOK;
+];
+```
+
+#### PC Update 阶段
+
+![](../../../static/CSAPP/cp4/f4.31SEQ%20PC%20update.png)
+
+```
+word new_pc = [
+	# Call. Use instruction constant 
+	icode == ICALL : valC;
+	# Taken branch. Use instruction constant 
+	icode == IJXX && Cnd : valC;
+	# Completion of RET instruction. Use value from stack 
+	icode == IRET : valM;
+	# Default: Use incremented PC 
+	1 : valP;
+];
+```
