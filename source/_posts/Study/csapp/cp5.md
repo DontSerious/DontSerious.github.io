@@ -1,7 +1,7 @@
 ---
 title: cp5 优化程序性能
 date: 2023-06-24 10:26:28
-updated: 2023-07-18 10:25:10
+updated: 2023-07-25 11:19:10
 categories:
   - Study
 tags:
@@ -90,6 +90,20 @@ void combinel(vec_ptr v, data_t *dest)
 ```
 
 合并运算的初始实现
+
+求和声明：
+
+```
+#define IDENT 0
+#define OP +
+```
+
+乘积声明：
+
+```
+#define IDENT 1
+#define OP *
+```
 
 ## 消除循环的低效率
 
@@ -232,3 +246,112 @@ acc in %xmm0, data+i in %rdx, data+length in %rax
 - 我们引入了一个临时变量 acc，用于在循环中累积计算出的值，只有在循环完成后，结果才存储在 dest 中。
 - 如上面的汇编代码所示，编译器现在可以使用寄存器%xmm0来保存累积值。
 - 与 combine3中的循环相比，我们将每次迭代的内存操作从两次读一次写减少到只需要一次读。
+
+## 循环展开
+
+```
+/* 2 x 1 loop unrolling */
+void combine5(vec_ptr v, data_t *dest)
+{
+	long i;
+	long length = vec_length(v);
+	long limit = length-1;
+	data_t *data = get_vec_start(v);
+	data_t acc = IDENT; 9
+	/* Combine 2 elements at a time */
+	for (i = 0; i < limit; i+=2) {
+		acc = (acc OP data[i]) OP data[i+1];
+	}
+
+	/* Finish any remaining elements */
+	for (;i < length; i++) {
+		acc = acc OP data[i];
+	}
+	*dest = acc;
+}
+```
+
+- 确保第一次循环不会超出数组的界限
+
+```
+	Inner loop of combine5. data_t = double, OP = *
+	i in %rdx, data %rax, limit in %rbx, acc in %xmm0
+1	.L35:					                  loop:
+2	  vmulsd (%rax,%rdx,8), %xmm0, %xmm0	    Multiply acc by data[i]
+3	  vmulsd 8(%rax,%rdx,8), %xmm0, %xmm0	    Multiply acc by data[i+1]
+4	  addq $2, %rdx				                Increment i by 2
+5	  cmpq %rdx, %rbp			                Compare to limit:i
+6	  jg .L35				                    If >, goto loop
+```
+
+![](../../../static/CSAPP/cp5/f5.17.png)
+
+- 整数加法的一个周期的延迟称为限制性能的因素
+
+![](../../../static/CSAPP/cp5/f5.19.png)
+
+## 提高并行性
+
+```
+/* 2 x 2 loop unrolling */
+void combine6(vec_ptr v, data_t *dest)
+{
+	long i;
+	long length = vec_length(v);
+	long limit = length-1;
+	data_t *data = get_vec_start(v);
+	data_t acc0 = IDENT;
+	data_t acc1 = IDENT;
+
+	/* Combine 2 elements at a time */
+	for (i = 0; i < limit; i+=2) {
+		acc0 = acc0 OP data[i];
+		acc1 = acc1 OP data[i+1];
+	}
+
+	/* Finish any remaining elements */
+	for (;i < length; i++) {
+		acc0 = acc0 OP data[i];
+	}
+	*dest = acc0 OP acc1;
+}
+```
+
+- 2 x 2 循环展开
+- 打破了由延迟界限设下的限制。处理器不再需要延迟一个加法或乘法操作以待前一个操作完成
+
+![](../../../static/CSAPP/cp5/f5.21.png)
+
+![](../../../static/CSAPP/cp5/f5.23.png)
+
+## 重新结合变换
+
+```
+/* 2 x 1a loop unrolling */
+void combine7(vec_ptr v, data_t *dest)
+{
+	long i;
+	long length = vec_length(v);
+	long limit = length-1;
+	data_t *data = get_vec_start(v);
+	data_t acc = IDENT; 9
+	/* Combine 2 elements at a time */
+	for (i = 0; i < limit; i+=2) {
+		acc = acc OP (data[i] OP data[i+1]);
+	} 
+
+	/* Finish any remaining elements */
+	for (;i < length; i++) {
+		acc = acc OP data[i];
+	}
+	*dest = acc;
+}
+```
+
+- 与 combine 5 不同的之处于第 11 行
+- 性能提升很大，几乎与 combine6 相同
+- 修改之后，每次迭代内的第一个乘法都不需要等待前一次迭代的累计值就可以执行
+
+![](../../../static/CSAPP/cp5/f5.26.png)
+
+![](../../../static/CSAPP/cp5/f5.28.png)
