@@ -355,3 +355,51 @@ void combine7(vec_ptr v, data_t *dest)
 ![](../../../static/CSAPP/cp5/f5.26.png)
 
 ![](../../../static/CSAPP/cp5/f5.28.png)
+
+# 限制因素
+
+## 寄存器溢出
+
+![](../../../static/CSAPP/cp5/reg%20spilling.png)
+
+- 循环并行的好处受到汇编代码描述计算的能力限制。
+- 如果并行度超过可用寄存器的数量，编译器会诉诸溢出。
+- 上图可以发现，循环展开并没有改善，有些甚至还变差了
+
+## 分支预测
+
+分支预测失败的惩罚是很严重的，所以我们需要控制编写程序的方法
+
+```
+/* Rearrange two vectors so that for each i, b[i] >= a[i] */
+void minmax1(long a[], long b[], long n) {
+	long i;
+	for (i = 0; i < n; i++) {
+		if (a[i] > b[i]) {
+			long t = a[i];
+			a[i] = b[i];
+			b[i] = t;
+		}
+	}
+}
+```
+
+命令式风格代码⬆
+- CPE 大约为 13.5，但对于可预测的数据，CPE 仅为 2.5~3.5，预测错误惩罚约为 20 个周期
+
+```
+/* Rearrange two vectors so that for each i, b[i] >= a[i] */
+void minmax2(long a[], long b[], long n) {
+	long i;
+	for (i = 0; i < n; i++) {
+		long min = a[i] < b[i] ? a[i] : b[i];
+		long max = a[i] < b[i] ? b[i] : a[i];
+		a[i] = min;
+		b[i] = max;
+	}
+}
+```
+
+功能式风格代码⬆
+- 无论数据是可预测还是不可预测，CPE 都大约为 4.0
+- 这样写可以引导产生条件传送代码，提高性能
