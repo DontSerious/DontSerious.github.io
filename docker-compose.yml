@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  blog:   # 容器名
+    build: . # 根据当前文件夹进行构建
+    ports: 
+      - "42345:4000"  # 暴露端口
+    volumes:
+      - ./:/blog:ro # 动态绑定，可以使用相对地址
+      # - /blog/node_modules # 不绑定
