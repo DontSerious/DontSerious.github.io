@@ -83,10 +83,10 @@ services:
 	blog:   # 容器名
 		build: . # 根据当前文件夹进行构建
 		ports: 
-			- "3000:3000"  # 暴露端口
+			- "3000:3000"  # 暴露端口，本地路径:容器文件夹路径
 		volumes:
 			- ./:/blog:ro # 动态绑定，可以使用相对地址
-			- /blog/node_module # 不绑定
+			- /blog/node_modules # 不绑定
 ```
 
 - `docker-compose up -d --build` 执行
