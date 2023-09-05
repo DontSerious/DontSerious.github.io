@@ -11,6 +11,7 @@ tags:
 ```
 cat /etc/issue
 ```
+
 # Debian 11 换源
 ```
 cat >> /etc/apt/sources.list  << EOF
@@ -38,3 +39,5 @@ kill -9 29999
 ```
 
 # 查看开机日志 dmesg
+
+# 解决依赖缺失 apt-cache
