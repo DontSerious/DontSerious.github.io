@@ -112,6 +112,14 @@ if (!(Get-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -ErrorAction SilentlyCon
 2. 编辑 bashrc 文件，添加一行 ssh-add
 3. 每次开机会自动执行这一行命令
 
+## 测试
+
+这一步添加 know_host
+
+```shell
+ssh -T git@github.com
+```
+
 # 常用指令
 
 ## 切换远程仓库
