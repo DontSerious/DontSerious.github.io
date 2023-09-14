@@ -391,4 +391,4 @@ providers:
 ## Enable will truncate auto_excerpt.lines rows in post head to replace excerpt.
 auto_excerpt:
     enable: true
-    lines: 4
+    lines: 0

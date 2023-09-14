@@ -92,5 +92,5 @@ services:
 - `docker-compose up -d --build` 执行
 	- `-d` 后台运行
 	- `--build` 如果镜像修改则重建
-- `docker-compose down -v` 清楚
+- `docker-compose down -v` 清除
 	- `-v` 删除 volume

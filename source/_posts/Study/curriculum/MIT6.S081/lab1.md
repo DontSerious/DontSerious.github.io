@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
 # pingpong
 
-[基础 io](./基础IO/#Pipe-函数)
+[pipe函数介绍](../基础IO/#Pipe-函数)
 
 ```c
 #include "kernel/types.h"

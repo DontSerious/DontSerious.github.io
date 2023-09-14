@@ -35,6 +35,8 @@ widget:
 
 # 添加主页自动折叠
 
+`/home/tomato/blog/themes/icarus/layout/common/article.jsx` 108行
+
 ```jsx
 {/* 改为主页文章全折叠 */}
 <div class="content" dangerouslySetInnerHTML={{
@@ -65,3 +67,13 @@ auto_excerpt:
 ```
 
 自定义表格只需要 `<table id="align_table">` 就可以实现居中
+
+# 修改主页卡片样式
+
+`themes/icarus/include/style/card.styl` 添加样式
+
+```styl
+.card
+    article
+        padding: 1.5rem 1.5rem 0.4rem 1.5rem
+```
