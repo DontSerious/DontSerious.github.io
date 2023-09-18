@@ -1,7 +1,7 @@
 ---
 title: lab1 Unix 实用工具
 date: 2023-09-06 16:21:53
-updated: 2023-09-06 16:21:53
+updated: 2023-09-18 13:31:27
 categories:
   - Study
 tags:
@@ -65,4 +65,80 @@ int main(int argc, char *argv[]) {
     }
     exit(0);
 }
+```
+
+# prime
+
+输出 2~35 之间的素数
+
+```c
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+
+void sieve(int pleft[2]) {
+    int p;
+
+    int bytesRead = read(pleft[0], &p, sizeof(p)); // 读出来的第一个数一定是素数
+    if (bytesRead == 0) {  // 读不出东西时，read函数返回0，代表读取完毕，退出程序
+        exit(0);
+    }
+    printf("prime %d\n", p);
+
+    // 创建下一个 subprocess 用的管道
+    int pright[2];
+    pipe(pright);
+
+    if (fork() == 0) {
+        // next subprocess
+        close(pright[1]);   // 只需要读取，不需要输入
+        close(pleft[0]);    // 父进程管道使用完毕，关掉
+        sieve(pright);
+        exit(0);
+    } else {
+        // current subprocess
+        close(pright[0]);   // 只需要输入，不需要读取
+        int buf;
+        while (1) {
+            bytesRead = read(pleft[0], &buf, sizeof(buf));
+            if (bytesRead == 0) {  // 读到0时，代表管道清空，退出循环
+                break;
+            }
+            if (buf % p != 0) { // 筛掉非素数
+                write(pright[1], &buf, sizeof(buf));
+            }
+        }
+        close(pleft[0]);  // 关闭管道
+        close(pright[1]);  // 关闭管道
+        wait(0);
+        exit(0);
+    }
+}
+
+int main(int argc, char *argv[]) {
+    // main
+    int p[2];
+    pipe(p);
+
+    if (fork() == 0) {
+        // subprocess
+        // 第一个子进程
+        close(p[1]);    // 不需要插入，关闭插入管道
+        sieve(p);
+        exit(0);
+    } else {
+        // main
+        close(p[0]);    // 主进程只需要输入，不需要读取
+        int i;
+        for (i = 2; i <= 35; i++) {
+            write(p[1], &i, sizeof(i));
+        }
+        i = 0;  // 用0作为结束标识
+        write(p[1], &i, sizeof(i));
+        close(p[1]);  // 关闭管道
+    }
+    wait(0);
+    exit(0);
+}
+
 ```
