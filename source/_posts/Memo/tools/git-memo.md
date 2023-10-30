@@ -1,7 +1,7 @@
 ---
 title: git
 date: 2023-03-18 15:41:53
-updated: 2023-05-13 09:27:45
+updated: 2023-10-30 17:37:26
 categories:
 - Memo
 tags:
@@ -121,6 +121,25 @@ ssh -T git@github.com
 ```
 
 # 常用指令
+
+## 初始化
+
+Git 初始化本地已有项目并推送到 Git 仓库
+
+1. 初始化
+   `git init`
+2. 创建仓库
+3. 设置远程仓库链接
+   `git remote add origin 仓库链接`
+4. 拉取分支
+   `git pull origin master:brantest` 将远程主机 origin 的 master 分支拉取过来并与本地的 brantest 分支合并
+   `git pull origin master` 省略冒号则是与当前分支合并
+5. 提交代码到远程分支
+   `git push -u 远程仓库名 本地分支名`
+6. Push 项目
+   `git add -A`
+   `git commit -m '初始化git项目'`
+   `git push --set-upstream 远程仓库名 本地分支名`
 
 ## 切换远程仓库
 

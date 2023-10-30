@@ -1,7 +1,7 @@
 ---
 title: lab1 Unix 实用工具
 date: 2023-09-06 16:21:53
-updated: 2023-09-18 13:31:27
+updated: 2023-09-21 17:14:14
 categories:
   - Study
 tags:
@@ -141,4 +141,155 @@ int main(int argc, char *argv[]) {
     exit(0);
 }
 
+```
+
+# find
+
+-  `de.inum==0` 表示这是一块已经初始化并且可以用来创建文件或者文件夹的位置，所以在读取的过程中应当无视这一块空间
+
+```c
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+#include "kernel/fs.h"
+
+int
+find(char *path, char *fName)
+{
+    char buf[512], *p;
+    int fd;
+    struct dirent de;   // xv6文件系统中的目录层结构
+    struct stat st;
+    int findSuccess = 0;
+
+	// 打开文件
+    if((fd = open(path, 0)) < 0){
+        fprintf(2, "find: cannot open %s\n", path);
+        return -1;
+    }
+
+	// 读取状态
+    if(fstat(fd, &st) < 0){
+        fprintf(2, "find: cannot stat %s\n", path);
+        close(fd);
+        return -1;
+    }
+
+    // 读取目录并且将其放入到buf中，用一个活动的指针p去对buf中的内容进行拼接和修饰操作
+    strcpy(buf, path);
+    p = buf + strlen(buf);
+    *p++ = '/';
+
+	// 循环，判断条件为是否成功从句柄fd中读取dirent结构（目录层），使用read()函数将读取到的dirent存储到de中
+    while(read(fd, &de, sizeof(de)) == sizeof(de)){
+        if(de.inum == 0)
+            continue;
+
+        if(!strcmp(de.name, ".") || !strcmp(de.name, ".."))
+            continue;
+
+		// 拼接de.name到buf末尾，获得fd指向的目录下的一个文件完整路径
+        memcpy(p, de.name, DIRSIZ);
+        p[DIRSIZ] = 0;
+
+        if(stat(buf, &st) < 0){
+            printf("find: cannot stat %s\n", buf);
+            continue;
+        }
+
+        switch(st.type){
+        case T_FILE:
+            if (strcmp(de.name, fName) == 0)
+            {
+                printf("%s\n", buf);
+                findSuccess = 1;
+            }
+            break;
+
+        case T_DIR:
+            findSuccess = find(buf, fName);
+            break;
+        }
+    }
+    close(fd);
+    return findSuccess;
+}
+
+int 
+main(int argc, char *argv[]) 
+{
+    int findSuccess = 0;
+
+    if (argc < 2 || argc > 3) {
+        fprintf(2, "find: Wrong usage... \n");
+        exit(0);
+    }
+
+    if (argc == 2)
+        findSuccess = find(".", argv[1]);
+    if (argc == 3)
+        findSuccess = find(argv[1], argv[2]);
+
+    if (findSuccess == 0)
+        printf("Cannot find the target...\n");
+    
+    exit(0);
+}
+```
+
+# xargs
+
+- 用 read 或者 get 读取管道传来的输入流
+- 传来的输入流末尾会带一个换行 `'\n'`
+
+```c
+#include "kernel/param.h"
+#include "kernel/types.h"
+#include "user/user.h"
+
+void run(char *program, char **args) 
+{
+    if (fork() == 0) {
+        exec(program, args);
+        exit(0);
+    }
+    return;
+}
+
+int
+main (int argc, char *argv[])
+{
+    // buf缓冲区，用来读取管道传来的输入流
+    // xargs数组用来保存xargs命令之后的参数
+    // index指向xargs下一个参数写入下标
+    char *xargs[MAXARG], buf[2048];
+    int index = argc - 1;
+    // 优先填入xargs自带参数
+    for (int i = 1; i < argc; i++)
+        xargs[i - 1] = argv[i];
+
+    // 从标准输入0读取到缓冲区中
+    char *p = buf;
+    xargs[index] = buf;
+    while (read(0, p, 1) != 0) {
+        // 将空格或者\n设置为0，代表结尾
+        if (*p == ' ' || *p == '\n') {
+            *p = 0;
+            // 设置下一个参数从空格后开始
+            xargs[++index] = p + 1;
+
+            if (*p == '\n') {
+                // 创建子进程开始执行，并重置下标，开始第二个指令
+                run(argv[1], xargs);
+                index = argc - 1;
+            }
+        }
+        p++;
+    }
+    
+    run(argv[1], xargs);
+
+    wait(0);
+    exit(0);
+}
 ```
