@@ -6,7 +6,7 @@ tags:
   - go
 toc: true
 date: 2023-04-11 15:12:19
-updated: 2023-04-11 15:12:19
+updated: 2023-11-01 16:02:08
 ---
 # 安装
 
@@ -17,7 +17,11 @@ updated: 2023-04-11 15:12:19
 sudo tar -C /usr/local -xzf go1.12.7.linux-amd64.tar.gz
 
 # 编辑 .bashrc 加入环境变量
-export PATH=$PATH:/usr/local/go/bin
+export GOROOT=/usr/local/go	##Golang安装目录
+export PATH=$GOPATH/bin:$PATH
+export GOPATH=$HOME/go		##Golang项目目录
+
+# bash执行
 source .bashrc
 ```
 
