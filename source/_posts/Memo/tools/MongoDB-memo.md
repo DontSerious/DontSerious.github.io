@@ -101,3 +101,8 @@ mongosh "<connectionString>"
 
 connectionString：`mongodb://<username>:<password>@<hostname>:<port>/<database>`
 
+## 认证错误
+
+`panic: connection() error occurred during connection handshake: auth error: sasl conversation error: unable to authenticate using mechanism "SCRAM-SHA-1": (AuthenticationFailed) Authentication failed.`
+
+在 connectString 后面加上: `?authSource=admin&authMechanism=SCRAM-SHA-1"` 即可解决
